@@ -1,0 +1,2903 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#13171f">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>VTT HS^2 - Mobile Android</title>
+    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+    <style>
+        :root {
+            --bg-dark: #0b0d11;
+            --bg-panel: #13171f;
+            --bg-card: #1b202c;
+            --border-color: #272f3d;
+            --primary: #7c4dff;
+            --primary-hover: #651fff;
+            --text-main: #f5f6fa;
+            --text-muted: #8e95a5;
+            --accent: #00e5ff;
+            --danger: #ff5252;
+            --success: #69f0ae;
+            --turn-glow: #ffd600;
+            --header-h: 50px;
+            --bottom-nav-h: 56px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            height: 100dvh;
+            width: 100vw;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            user-select: none;
+            touch-action: manipulation;
+        }
+
+        /* BARRA SUPERIOR MOBILE */
+        header.mobile-header {
+            height: var(--header-h);
+            background-color: var(--bg-panel);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 10px;
+            z-index: 100;
+            flex-shrink: 0;
+        }
+
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .header-brand h1 {
+            font-size: 0.92rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .header-brand h1 span {
+            color: var(--accent);
+        }
+
+        .net-badge {
+            font-size: 0.6rem;
+            padding: 2px 6px;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.06);
+            color: var(--text-muted);
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .net-badge.connected {
+            background: rgba(105, 240, 174, 0.15);
+            color: var(--success);
+            border-color: var(--success);
+        }
+
+        .turn-badge {
+            font-size: 0.62rem;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 12px;
+            background: rgba(255, 214, 0, 0.12);
+            color: var(--turn-glow);
+            border: 1px solid rgba(255, 214, 0, 0.35);
+            cursor: pointer;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 120px;
+        }
+
+        /* ÁREA DE CONTEÚDO PRINCIPAL (MUDANÇA DE ABAS) */
+        main.mobile-main {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+        }
+
+        .tab-view {
+            display: none;
+            width: 100%;
+            height: 100%;
+            overflow-y: auto;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .tab-view.active {
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* BARRA INFERIOR DE NAVEGAÇÃO (BOTTOM NAV) */
+        nav.mobile-bottom-nav {
+            height: var(--bottom-nav-h);
+            background-color: var(--bg-panel);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 100;
+            flex-shrink: 0;
+            padding-bottom: env(safe-area-inset-bottom, 0);
+        }
+
+        .nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+            color: var(--text-muted);
+            background: none;
+            border: none;
+            cursor: pointer;
+            height: 100%;
+            font-size: 0.6rem;
+            font-weight: 600;
+            transition: color 0.15s ease;
+        }
+
+        .nav-item span.icon {
+            font-size: 1.15rem;
+            line-height: 1;
+        }
+
+        .nav-item.active {
+            color: var(--accent);
+        }
+
+        .nav-item.active span.icon {
+            transform: scale(1.1);
+            filter: drop-shadow(0 0 5px rgba(0, 229, 255, 0.5));
+        }
+
+        /* BOTÕES & INPUTS GERAIS */
+        button {
+            border: none;
+            cursor: pointer;
+            border-radius: 6px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            padding: 6px 10px;
+            transition: filter 0.15s;
+        }
+
+        button:active {
+            filter: brightness(0.85);
+        }
+
+        .btn-primary { background: var(--primary); color: #fff; }
+        .btn-accent { background: var(--accent); color: #000; font-weight: 700; }
+        .btn-danger { background: var(--danger); color: #fff; }
+        .btn-secondary { background: var(--bg-card); color: var(--text-main); border: 1px solid var(--border-color); }
+        .btn-small { padding: 3px 6px; font-size: 0.65rem; border-radius: 4px; }
+
+        input, select, textarea {
+            background-color: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 6px 8px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            outline: none;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--accent);
+        }
+
+        /* ==========================================================================
+           ABA 1: TABULEIRO / MAPA TOUCH
+           ========================================================================== */
+        #view-tabuleiro {
+            position: relative;
+            background: #050608;
+            overflow: hidden;
+            touch-action: none; /* Gestos controlados via JS */
+        }
+
+        #tabuleiro-wrapper {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            overflow: hidden;
+            touch-action: none;
+        }
+
+        #tabuleiro-jogo {
+            position: absolute;
+            width: 1000px;
+            height: 1000px;
+            transform-origin: 0 0;
+            background-color: #12141a;
+            background-image: 
+                linear-gradient(to right, rgba(255,255,255,0.04) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255,255,255,0.04) 1px, transparent 1px);
+            background-size: 40px 40px;
+            border: 2px solid var(--border-color);
+        }
+
+        #canvas-mapa {
+            position: absolute;
+            top: 0; left: 0;
+            pointer-events: none;
+        }
+
+        /* TOKENS */
+        .token {
+            position: absolute;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background-size: cover;
+            background-position: center;
+            border: 2px solid #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 0.68rem;
+            color: #fff;
+            cursor: pointer;
+            z-index: 10;
+            touch-action: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.6);
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+
+        .token.active-turn {
+            border-color: var(--turn-glow);
+            box-shadow: 0 0 14px var(--turn-glow);
+            animation: pulse-turn 1.4s infinite;
+        }
+
+        @keyframes pulse-turn {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.08); }
+        }
+
+        .token-layer-equip {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-size: contain;
+            background-position: center;
+            background-repeat: no-repeat;
+            pointer-events: none;
+        }
+
+        /* BARRA FLUTUANTE DE CONTROLES DO TABULEIRO */
+        .map-float-toolbar {
+            position: absolute;
+            bottom: 12px;
+            right: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            z-index: 30;
+        }
+
+        .float-btn {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+        }
+
+        .map-info-pill {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(19, 23, 31, 0.85);
+            backdrop-filter: blur(4px);
+            padding: 4px 8px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            font-size: 0.62rem;
+            color: var(--text-muted);
+            z-index: 30;
+            pointer-events: none;
+        }
+
+        /* PAINEL DE PINTURA DO MESTRE NO TABULEIRO (DRAWER FLUTUANTE) */
+        #mobile-editor-palette {
+            position: absolute;
+            top: 40px;
+            left: 10px;
+            right: 10px;
+            background: rgba(19, 23, 31, 0.95);
+            backdrop-filter: blur(8px);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 8px;
+            z-index: 40;
+            display: none;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .palette-row {
+            display: flex;
+            gap: 4px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+        }
+
+        .btn-palette-item {
+            width: 34px;
+            height: 34px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            font-size: 1.1rem;
+            cursor: pointer;
+        }
+
+        .btn-palette-item.active {
+            border-color: var(--accent);
+            box-shadow: 0 0 6px var(--accent);
+        }
+
+        /* ==========================================================================
+           ABA 2: FICHAS (HERÓIS & OPONENTES)
+           ========================================================================== */
+        #view-fichas {
+            padding: 8px;
+            gap: 8px;
+        }
+
+        .fichas-header {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .chip-group {
+            display: flex;
+            gap: 4px;
+            overflow-x: auto;
+            padding-bottom: 2px;
+        }
+
+        .chip {
+            padding: 4px 10px;
+            border-radius: 14px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            font-size: 0.68rem;
+            white-space: nowrap;
+            color: var(--text-muted);
+            cursor: pointer;
+        }
+
+        .chip.active {
+            background: rgba(0, 229, 255, 0.15);
+            color: var(--accent);
+            border-color: var(--accent);
+            font-weight: 700;
+        }
+
+        /* CARD DE CRIATURA MOBILE */
+        .mobile-creature-card {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            border-left: 4px solid var(--primary);
+        }
+
+        .card-top {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .avatar-box {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background-size: cover;
+            background-position: center;
+            border: 2px solid var(--border-color);
+            position: relative;
+            overflow: hidden;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 0.75rem;
+            color: #fff;
+        }
+
+        .card-title-area {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .card-title-area strong {
+            font-size: 0.8rem;
+            display: block;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .card-title-area small {
+            font-size: 0.6rem;
+            color: var(--text-muted);
+        }
+
+        /* BARRA DE HP COM CONTROLES RÁPIDOS (+/-) */
+        .hp-section {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .hp-bar-bg {
+            height: 16px;
+            background: rgba(0,0,0,0.5);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hp-bar-fill {
+            height: 100%;
+            background: var(--success);
+            transition: width 0.25s ease;
+        }
+
+        .hp-bar-text {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.62rem;
+            font-weight: 800;
+            text-shadow: 0 1px 2px #000;
+        }
+
+        .hp-steppers {
+            display: flex;
+            gap: 3px;
+        }
+
+        .btn-stepper {
+            flex: 1;
+            padding: 3px 0;
+            font-size: 0.65rem;
+            font-weight: 800;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .btn-stepper.sub { background: rgba(255, 82, 82, 0.18); color: var(--danger); border: 1px solid rgba(255, 82, 82, 0.4); }
+        .btn-stepper.add { background: rgba(105, 240, 174, 0.18); color: var(--success); border: 1px solid rgba(105, 240, 174, 0.4); }
+
+        /* GRID DE ESTATÍSTICAS */
+        .stats-strip {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 4px;
+            text-align: center;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 4px 2px;
+        }
+
+        .stat-item label {
+            display: block;
+            font-size: 0.55rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .stat-item span {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        /* ACCORDIONS DENTRO DO CARD */
+        .accordion-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 6px;
+            background: rgba(255,255,255,0.02);
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            font-size: 0.68rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 2px;
+        }
+
+        .accordion-body {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding: 4px 0;
+        }
+
+        /* ==========================================================================
+           ABA 3: CHAT & ROLADOR DE DADOS
+           ========================================================================== */
+        #view-chat {
+            padding: 8px;
+            gap: 6px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #mobile-chat-log {
+            flex: 1;
+            overflow-y: auto;
+            background: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            font-size: 0.72rem;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .chat-msg {
+            background: var(--bg-card);
+            padding: 5px 8px;
+            border-radius: 6px;
+            border-left: 3px solid var(--accent);
+            word-break: break-word;
+            line-height: 1.35;
+        }
+
+        .chat-msg.action { border-left-color: var(--turn-glow); }
+        .chat-msg.damage { border-left-color: var(--danger); }
+        .chat-msg.round { border-left-color: var(--primary); }
+
+        /* BARRA RÁPIDA DE DADOS */
+        .quick-dice-bar {
+            display: flex;
+            gap: 4px;
+            background: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 4px;
+            align-items: center;
+            overflow-x: auto;
+        }
+
+        .dice-btn {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--accent);
+            font-weight: 800;
+            font-size: 0.72rem;
+            padding: 6px 8px;
+            border-radius: 6px;
+            white-space: nowrap;
+            flex: 1;
+            text-align: center;
+        }
+
+        .chat-input-row {
+            display: flex;
+            gap: 4px;
+        }
+
+        .chat-input-row input {
+            flex: 1;
+            font-size: 0.78rem;
+        }
+
+        /* ==========================================================================
+           ABA 4: COMPÊNDIOS (ITENS & ARSENAL)
+           ========================================================================== */
+        #view-compendios {
+            padding: 8px;
+            gap: 8px;
+        }
+
+        .compendio-card {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 6px 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 6px;
+        }
+
+        /* ==========================================================================
+           ABA 5: MESA & CONFIGURAÇÕES
+           ========================================================================== */
+        #view-mesa {
+            padding: 10px;
+            gap: 10px;
+        }
+
+        .section-box {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .section-box h3 {
+            font-size: 0.78rem;
+            color: var(--accent);
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* MODAIS EM ESTILO BOTTOM SHEET PARA MOBILE */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.75);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            display: none;
+            align-items: flex-end;
+            justify-content: center;
+        }
+
+        .bottom-sheet {
+            background: var(--bg-panel);
+            border-top: 2px solid var(--accent);
+            border-radius: 16px 16px 0 0;
+            width: 100%;
+            max-width: 500px;
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            padding: 12px 14px;
+            gap: 10px;
+            overflow-y: auto;
+            box-shadow: 0 -8px 24px rgba(0,0,0,0.6);
+            animation: slide-up 0.2s ease-out;
+        }
+
+        @keyframes slide-up {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+
+        .sheet-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 6px;
+        }
+
+        .sheet-header h3 {
+            font-size: 0.88rem;
+            color: var(--accent);
+        }
+
+        /* PAPERDOLL COMPOSITE */
+        .paperdoll-container {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto;
+            position: relative;
+            border-radius: 10px;
+            border: 2px solid var(--border-color);
+            background: #050608;
+            overflow: hidden;
+        }
+
+        .paperdoll-layer {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .paperdoll-layer-equip {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-size: contain;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        /* BADGES */
+        .stat-badge {
+            font-size: 0.58rem;
+            padding: 1px 4px;
+            border-radius: 3px;
+            background: rgba(0, 229, 255, 0.12);
+            color: var(--accent);
+            font-weight: 700;
+        }
+
+        .stat-badge.neg {
+            background: rgba(255, 82, 82, 0.12);
+            color: var(--danger);
+        }
+
+        .slot-badge {
+            font-size: 0.58rem;
+            padding: 1px 4px;
+            border-radius: 3px;
+            background: rgba(255, 214, 0, 0.12);
+            color: var(--turn-glow);
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- BARRA SUPERIOR MOBILE -->
+    <header class="mobile-header">
+        <div class="header-brand">
+            <h1><span>VTT</span> HS^2 📱</h1>
+            <span id="indicador-rede" class="net-badge" onclick="abrirModalMultiplayer()">Offline</span>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 6px;">
+            <div id="badge-turno-atual" class="turn-badge" onclick="avancarTurnoMobile()" title="Clique para avançar turno">
+                ⚔️ Sem Combate
+            </div>
+            <a href="index.html" class="btn-secondary btn-small" style="text-decoration:none; padding:4px 6px;" title="Alternar para versão Desktop">🖥️</a>
+        </div>
+    </header>
+
+    <!-- ÁREA CENTRAL DE CONTEÚDO -->
+    <main class="mobile-main">
+
+        <!-- ABA 1: TABULEIRO / MAPA -->
+        <div id="view-tabuleiro" class="tab-view active">
+            <div class="map-info-pill" id="mapa-coords-info">🗺️ Toque para navegar • Pinça para zoom</div>
+            
+            <div id="tabuleiro-wrapper">
+                <div id="tabuleiro-jogo">
+                    <canvas id="canvas-mapa" width="1000" height="1000"></canvas>
+                </div>
+            </div>
+
+            <!-- PALETA DO MESTRE (FLUTUANTE) -->
+            <div id="mobile-editor-palette">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <strong style="font-size:0.7rem; color:var(--accent);">🎨 Ferramentas do Mestre</strong>
+                    <button class="btn-secondary btn-small" onclick="togglePaletaEditor(false)">✕</button>
+                </div>
+                <div class="palette-row">
+                    <button class="btn-palette-item active" data-tipo="terreno" data-valor="chao_pedra" title="Chão de Pedra">🧱</button>
+                    <button class="btn-palette-item" data-tipo="terreno" data-valor="chao_madeira" title="Madeira">🪵</button>
+                    <button class="btn-palette-item" data-tipo="terreno" data-valor="grama" title="Grama">🌿</button>
+                    <button class="btn-palette-item" data-tipo="terreno" data-valor="agua" title="Água">🌊</button>
+                    <button class="btn-palette-item" data-tipo="terreno" data-valor="parede" title="Parede">⬛</button>
+                    <button class="btn-palette-item" data-tipo="prop" data-valor="porta" title="Porta">🚪</button>
+                    <button class="btn-palette-item" data-tipo="prop" data-valor="bau" title="Baú">📦</button>
+                    <button class="btn-palette-item" data-tipo="prop" data-valor="fogueira" title="Fogueira">🔥</button>
+                    <button class="btn-palette-item" data-tipo="prop" data-valor="arvore" title="Árvore">🌲</button>
+                    <button class="btn-palette-item" data-tipo="prop" data-valor="ossos" title="Ossos">💀</button>
+                    <button class="btn-palette-item" data-tipo="borracha" data-valor="" title="Apagar">🧹</button>
+                </div>
+                <div style="display:flex; gap:4px;">
+                    <label class="btn-secondary btn-small" style="flex:1; text-align:center; cursor:pointer;">
+                        📷 Imagem de Fundo
+                        <input type="file" accept="image/*" style="display:none;" onchange="carregarMapaFundoMobile(this)">
+                    </label>
+                    <button class="btn-danger btn-small" onclick="limparTodoMapaMobile()">Limpar Tudo</button>
+                </div>
+            </div>
+
+            <!-- BARRA FLUTUANTE DE CONTROLES DO TABULEIRO -->
+            <div class="map-float-toolbar">
+                <button class="float-btn" id="btn-toggle-editor-mobile" onclick="togglePaletaEditor()" title="Editor de Mapa">🎨</button>
+                <button class="float-btn" onclick="ajustarZoomMobile(0.2)" title="Aumentar Zoom">+</button>
+                <button class="float-btn" onclick="ajustarZoomMobile(-0.2)" title="Diminuir Zoom">-</button>
+                <button class="float-btn" onclick="resetarVisaoMapaMobile()" title="Centralizar">🎯</button>
+            </div>
+        </div>
+
+        <!-- ABA 2: FICHAS (HERÓIS & OPONENTES) -->
+        <div id="view-fichas" class="tab-view">
+            <div class="fichas-header">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div class="chip-group" id="filtro-fichas-chips">
+                        <button class="chip active" onclick="filtrarAbaFichasMobile('todos', this)">Todos</button>
+                        <button class="chip" onclick="filtrarAbaFichasMobile('player', this)">🛡️ Heróis</button>
+                        <button class="chip" onclick="filtrarAbaFichasMobile('oponente', this)">💀 Oponentes</button>
+                        <button class="chip" onclick="filtrarAbaFichasMobile('personagem', this)">👤 Personagens</button>
+                    </div>
+                    <div style="display:flex; gap:3px;">
+                        <button class="btn-accent btn-small" onclick="abrirModalCriarEntidadeMobile()">+ Novo</button>
+                    </div>
+                </div>
+                <input type="text" id="busca-fichas-mobile" placeholder="🔍 Buscar por nome, condição ou arma..." oninput="renderizarFichasMobile()">
+            </div>
+
+            <div id="lista-fichas-container" style="display:flex; flex-direction:column; gap:8px;"></div>
+        </div>
+
+        <!-- ABA 3: CHAT & DADOS -->
+        <div id="view-chat" class="tab-view">
+            <div id="mobile-chat-log"></div>
+
+            <!-- FAIXA RÁPIDA DE DADOS -->
+            <div class="quick-dice-bar">
+                <span style="font-size:0.6rem; color:var(--text-muted); font-weight:700;">DADOS:</span>
+                <button class="dice-btn" onclick="rolarDadoRapido(4)">d4</button>
+                <button class="dice-btn" onclick="rolarDadoRapido(6)">d6</button>
+                <button class="dice-btn" onclick="rolarDadoRapido(8)">d8</button>
+                <button class="dice-btn" onclick="rolarDadoRapido(10)">d10</button>
+                <button class="dice-btn" onclick="rolarDadoRapido(12)">d12</button>
+                <button class="dice-btn" style="background:rgba(0,229,255,0.15); color:var(--accent);" onclick="rolarDadoRapido(20)">d20</button>
+                <button class="dice-btn" onclick="rolarDadoRapido(100)">d100</button>
+                <div style="display:flex; align-items:center; gap:2px;">
+                    <label style="font-size:0.55rem; color:var(--text-muted);">MOD:</label>
+                    <input type="number" id="input-mod-dado-rapido" value="0" style="width:40px; padding:2px; text-align:center; font-size:0.7rem;">
+                </div>
+            </div>
+
+            <div class="chat-input-row">
+                <input type="text" id="input-chat-mobile" placeholder="Digite uma mensagem..." onkeypress="if(event.key==='Enter') enviarMensagemChatMobile()">
+                <button class="btn-accent" onclick="enviarMensagemChatMobile()">Enviar</button>
+            </div>
+        </div>
+
+        <!-- ABA 4: COMPÊNDIOS (ITENS & ARSENAL) -->
+        <div id="view-compendios" class="tab-view">
+            <div style="display:flex; gap:6px; border-bottom:1px solid var(--border-color); padding-bottom:6px;">
+                <button class="chip active" id="subtab-comp-itens" onclick="alternarSubabaCompendio('itens')" style="flex:1;">🎒 Itens & Equipamentos</button>
+                <button class="chip" id="subtab-comp-armas" onclick="alternarSubabaCompendio('armas')" style="flex:1;">⚔️ Arsenal de Armas</button>
+            </div>
+
+            <!-- SEÇÃO DE ITENS -->
+            <div id="secao-compendio-itens" style="display:flex; flex-direction:column; gap:6px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; gap:4px;">
+                    <input type="text" id="busca-compendio-itens-mobile" placeholder="🔍 Filtrar itens..." oninput="renderizarCompendioItensMobile()" style="flex:1;">
+                    <button class="btn-accent btn-small" onclick="abrirModalEditarItemMobile(null, null, true)">+ Item</button>
+                </div>
+                <div id="lista-compendio-itens-mobile" style="display:flex; flex-direction:column; gap:4px;"></div>
+            </div>
+
+            <!-- SEÇÃO DE ARMAS -->
+            <div id="secao-compendio-armas" style="display:none; flex-direction:column; gap:6px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; gap:4px;">
+                    <input type="text" id="busca-compendio-armas-mobile" placeholder="🔍 Filtrar armas..." oninput="renderizarCompendioArmasMobile()" style="flex:1;">
+                    <button class="btn-accent btn-small" onclick="abrirModalNovaArmaMobile()">+ Arma</button>
+                </div>
+                <div id="lista-compendio-armas-mobile" style="display:flex; flex-direction:column; gap:4px;"></div>
+            </div>
+        </div>
+
+        <!-- ABA 5: MESA & COMBATE -->
+        <div id="view-mesa" class="tab-view">
+            <!-- COMBATE & INICIATIVA -->
+            <div class="section-box">
+                <h3>⚔️ Combate & Iniciativa</h3>
+                <div style="display:flex; gap:4px; flex-wrap:wrap;">
+                    <button class="btn-accent" onclick="abrirModalIniciativaMobile()" style="flex:1;">🎲 Rolar Iniciativa</button>
+                    <button class="btn-small" style="background:var(--turn-glow); color:#000; font-weight:700; flex:1;" onclick="avancarTurnoMobile()">Turno ⏩</button>
+                    <button class="btn-danger btn-small" onclick="resetarIniciativaMobile()">↺ Resetar</button>
+                </div>
+                <div id="lista-iniciativa-mobile" style="display:flex; flex-direction:column; gap:3px;"></div>
+            </div>
+
+            <!-- CENÁRIOS & SAVES -->
+            <div class="section-box">
+                <h3>💾 Cenários & Salvamentos</h3>
+                <div style="display:flex; gap:4px;">
+                    <input type="text" id="input-nome-save-mobile" placeholder="Nome do Cenário..." style="flex:1;">
+                    <button class="btn-primary" onclick="salvarCenarioMobile()">Salvar</button>
+                </div>
+                <div id="lista-saves-mobile" style="max-height:160px; overflow-y:auto; display:flex; flex-direction:column; gap:4px;"></div>
+            </div>
+
+            <!-- MULTIPLAYER P2P -->
+            <div class="section-box">
+                <h3>🌐 Conexão Multiplayer</h3>
+                <div style="display:flex; align-items:center; gap:4px;">
+                    <label style="font-size:0.7rem;">Seu Nickname:</label>
+                    <input type="text" id="input-nick-mobile" style="flex:1;" maxlength="20">
+                    <button class="btn-secondary btn-small" onclick="salvarNicknameMobile()">Definir</button>
+                </div>
+                <div style="display:flex; gap:4px; margin-top:4px;">
+                    <button class="btn-primary" style="flex:1;" onclick="dispararConfirmacaoHostMobile()">👑 Hospedar como Mestre</button>
+                </div>
+                <div style="display:flex; gap:4px; margin-top:4px;">
+                    <input type="text" id="input-sala-p2p-mobile" placeholder="ID da Sala do Mestre..." style="flex:1;">
+                    <button class="btn-accent" onclick="conectarComoJogadorMobile()">Entrar</button>
+                </div>
+                <div id="info-p2p-mobile" style="font-size:0.65rem; color:var(--text-muted); background:var(--bg-dark); padding:6px; border-radius:4px; border:1px solid var(--border-color);">
+                    Status: Desconectado
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- BARRA INFERIOR DE NAVEGAÇÃO MOBILE -->
+    <nav class="mobile-bottom-nav">
+        <button class="nav-item active" onclick="mudarAbaPrincipal('tabuleiro', this)">
+            <span class="icon">🗺️</span>
+            <span>Mapa</span>
+        </button>
+        <button class="nav-item" onclick="mudarAbaPrincipal('fichas', this)">
+            <span class="icon">🛡️</span>
+            <span>Fichas</span>
+        </button>
+        <button class="nav-item" onclick="mudarAbaPrincipal('chat', this)">
+            <span class="icon">💬</span>
+            <span>Chat</span>
+        </button>
+        <button class="nav-item" onclick="mudarAbaPrincipal('compendios', this)">
+            <span class="icon">🎒</span>
+            <span>Itens</span>
+        </button>
+        <button class="nav-item" onclick="mudarAbaPrincipal('mesa', this)">
+            <span class="icon">⚙️</span>
+            <span>Mesa</span>
+        </button>
+    </nav>
+
+    <!-- ==========================================================================
+       MODAIS EM BOTTOM SHEET (TOUCH-OPTIMIZED)
+       ========================================================================== -->
+
+    <!-- MODAL CRIAR ENTIDADE -->
+    <div id="modal-criar-entidade" class="modal-overlay" onclick="if(event.target===this) fecharModalCriarEntidadeMobile()">
+        <div class="bottom-sheet">
+            <div class="sheet-header">
+                <h3>➕ Nova Entidade</h3>
+                <button class="btn-secondary btn-small" onclick="fecharModalCriarEntidadeMobile()">✕</button>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:8px;">
+                <button onclick="confirmarCriacaoMobile('player')" class="btn-accent" style="padding:10px;">🛡️ Novo Herói / Player</button>
+                <button onclick="confirmarCriacaoMobile('oponente')" class="btn-danger" style="padding:10px;">💀 Novo Oponente / Vilão</button>
+                <button onclick="confirmarCriacaoMobile('personagem')" class="btn-secondary" style="padding:10px; color:#ffab00; border-color:#ffab00;">👤 Novo Personagem / NPC</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL MOCHILA COMPÊNDIO (PEGAR ITENS DIRETO PARA O PERSONAGEM) -->
+    <div id="modal-mochila-compendio" class="modal-overlay" onclick="if(event.target===this) fecharModalMochilaCompendioMobile()">
+        <div class="bottom-sheet">
+            <div class="sheet-header">
+                <h3 id="titulo-mochila-compendio-modal">🎒 Itens para a Mochila</h3>
+                <button class="btn-secondary btn-small" onclick="fecharModalMochilaCompendioMobile()">✕</button>
+            </div>
+            <div class="chip-group" id="chips-mochila-compendio">
+                <button class="chip active" onclick="filtrarMochilaCompendioModal('todos', this)">Todos</button>
+                <button class="chip" onclick="filtrarMochilaCompendioModal('equipamento', this)">🛡️ Equipamentos</button>
+                <button class="chip" onclick="filtrarMochilaCompendioModal('consumivel', this)">🧪 Consumíveis</button>
+                <button class="chip" onclick="filtrarMochilaCompendioModal('utilitario', this)">🪵 Utilitários</button>
+                <button class="chip" onclick="filtrarMochilaCompendioModal('tesouro', this)">🪙 Tesouros</button>
+            </div>
+            <input type="text" id="busca-mochila-compendio-modal" placeholder="🔍 Buscar por nome..." oninput="renderizarListaMochilaCompendioModal()">
+            <div id="lista-mochila-compendio-modal" style="max-height: 260px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px;"></div>
+            <button class="btn-secondary" onclick="fecharModalMochilaCompendioMobile()">Fechar</button>
+        </div>
+    </div>
+
+    <!-- MODAL ENVIAR ITEM DO COMPÊNDIO PARA MOCHILA -->
+    <div id="modal-enviar-item-mochila" class="modal-overlay" onclick="if(event.target===this) fecharModalEnviarItemMochilaMobile()">
+        <div class="bottom-sheet">
+            <div class="sheet-header">
+                <h3>🎒 Colocar na Mochila</h3>
+                <button class="btn-secondary btn-small" onclick="fecharModalEnviarItemMochilaMobile()">✕</button>
+            </div>
+            <div id="info-item-enviar-mochila" style="background:var(--bg-dark); padding:6px; border-radius:6px; border:1px solid var(--border-color); font-size:0.75rem;"></div>
+            <div style="display:flex; align-items:center; gap:6px;">
+                <label style="font-size:0.75rem;">Quantidade:</label>
+                <input type="number" id="qtd-enviar-item-mochila" value="1" min="1" max="99" style="width:70px; text-align:center;">
+            </div>
+            <label style="font-size:0.7rem; color:var(--text-muted);">Selecione o Personagem:</label>
+            <div id="lista-criaturas-enviar-mochila" style="max-height:220px; overflow-y:auto; display:flex; flex-direction:column; gap:4px;"></div>
+            <button class="btn-secondary" onclick="fecharModalEnviarItemMochilaMobile()">Cancelar</button>
+        </div>
+    </div>
+
+    <!-- MODAL CRIAR / EDITAR ITEM OU PRESET -->
+    <div id="modal-editar-item" class="modal-overlay" onclick="if(event.target===this) fecharModalEditarItemMobile()">
+        <div class="bottom-sheet">
+            <div class="sheet-header">
+                <h3 id="modal-item-titulo">📦 Item / Equipamento</h3>
+                <button class="btn-secondary btn-small" onclick="fecharModalEditarItemMobile()">✕</button>
+            </div>
+            <div style="display:flex; gap:6px;">
+                <input type="text" id="modal-item-icone" placeholder="🏷️" style="width:44px; text-align:center;">
+                <input type="text" id="modal-item-nome" placeholder="Nome do item..." style="flex:1;">
+            </div>
+            <div style="display:flex; gap:6px;">
+                <select id="modal-item-tipo" style="flex:1;" onchange="atualizarCamposTipoItemModalMobile(this.value)">
+                    <option value="equipamento">🛡️ Equipamento</option>
+                    <option value="consumivel">🧪 Consumível</option>
+                    <option value="utilitario">🪵 Utilitário</option>
+                    <option value="tesouro">🪙 Tesouro</option>
+                </select>
+                <input type="number" id="modal-item-qtd" value="1" min="1" style="width:70px; text-align:center;" placeholder="Qtd">
+            </div>
+            <textarea id="modal-item-descricao" rows="2" placeholder="Descrição ou regras do item..."></textarea>
+
+            <!-- SEÇÃO ESPECÍFICA EQUIPAMENTO -->
+            <div id="secao-campos-equipamento" style="display:flex; flex-direction:column; gap:4px; background:rgba(0,229,255,0.04); border:1px solid rgba(0,229,255,0.2); border-radius:6px; padding:6px;">
+                <label style="font-size:0.65rem; color:var(--accent); font-weight:700;">Propriedades de Equipamento</label>
+                <select id="modal-item-slot">
+                    <option value="corpo">🛡️ Torso / Armadura</option>
+                    <option value="cabeca">👑 Cabeça / Elmo</option>
+                    <option value="maoPrincipal">⚔️ Mão Principal</option>
+                    <option value="maoSecundaria">🛡️ Mão Secundária</option>
+                    <option value="acessorio">📿 Acessório / Capa</option>
+                    <option value="outro">🎒 Outro</option>
+                </select>
+                <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:4px;">
+                    <input type="number" id="modal-item-bonus-hp" placeholder="+PV" style="text-align:center;">
+                    <input type="number" id="modal-item-bonus-esquiva" placeholder="+Esq" style="text-align:center;">
+                    <input type="number" id="modal-item-bonus-res" placeholder="+Res" style="text-align:center;">
+                </div>
+            </div>
+
+            <!-- SEÇÃO CONSUMÍVEL -->
+            <div id="secao-campos-consumivel" style="display:none; flex-direction:column; gap:4px; background:rgba(105,240,174,0.04); border:1px solid rgba(105,240,174,0.2); border-radius:6px; padding:6px;">
+                <label style="font-size:0.65rem; color:var(--success); font-weight:700;">Efeito Consumível</label>
+                <input type="number" id="modal-item-efeito-hp" placeholder="Recuperação de Vida (+PV)" style="text-align:center;">
+            </div>
+
+            <!-- OPÇÃO: COLOCAR TAMBÉM NA MOCHILA -->
+            <div id="secao-adicionar-mochila-preset" style="display:none; flex-direction:column; gap:4px; background:var(--bg-dark); border:1px solid var(--border-color); border-radius:6px; padding:6px;">
+                <label style="color:var(--accent); font-weight:700; font-size:0.68rem;">🎒 Colocar também na mochila de:</label>
+                <select id="modal-item-enviar-criatura"></select>
+            </div>
+
+            <div style="display:flex; gap:6px; margin-top:4px;">
+                <button class="btn-accent" style="flex:1;" onclick="salvarItemModalMobile()">Salvar</button>
+                <button class="btn-secondary" style="flex:1;" onclick="fecharModalEditarItemMobile()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL ARSENAL (CRIAR/EDITAR ARMA) -->
+    <div id="modal-arsenal" class="modal-overlay" onclick="if(event.target===this) fecharModalArsenalMobile()">
+        <div class="bottom-sheet">
+            <div class="sheet-header">
+                <h3 id="modal-arsenal-titulo">⚔️ Arma do Arsenal</h3>
+                <button class="btn-secondary btn-small" onclick="fecharModalArsenalMobile()">✕</button>
+            </div>
+            <input type="text" id="novo-arsenal-nome" placeholder="Nome da arma (Ex: Espada Longa)...">
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:4px;">
+                <div>
+                    <label style="font-size:0.6rem; color:var(--text-muted);">Dado Ataque (d20)</label>
+                    <input type="number" id="novo-arsenal-dado-atk" value="20" style="text-align:center;">
+                </div>
+                <div>
+                    <label style="font-size:0.6rem; color:var(--text-muted);">Bônus Acerto (+)</label>
+                    <input type="number" id="novo-arsenal-bonus-atk" value="0" style="text-align:center;">
+                </div>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:4px;">
+                <div>
+                    <label style="font-size:0.6rem; color:var(--text-muted);">Qtd Dados</label>
+                    <input type="number" id="novo-arsenal-qtd-dano" value="1" min="1" style="text-align:center;">
+                </div>
+                <div>
+                    <label style="font-size:0.6rem; color:var(--text-muted);">Faces (Ex: 8)</label>
+                    <input type="number" id="novo-arsenal-faces-dano" value="8" min="1" style="text-align:center;">
+                </div>
+                <div>
+                    <label style="font-size:0.6rem; color:var(--text-muted);">Mod Dano (+)</label>
+                    <input type="number" id="novo-arsenal-mod-dano" value="0" style="text-align:center;">
+                </div>
+            </div>
+            <div style="display:flex; gap:6px;">
+                <button class="btn-accent" style="flex:1;" onclick="salvarArmaNoArsenalMobile()">Salvar Arma</button>
+                <button class="btn-secondary" style="flex:1;" onclick="fecharModalArsenalMobile()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL INSPEÇÃO VISUAL (PAPERDOLL) -->
+    <div id="modal-inspecionar-visual" class="modal-overlay" onclick="if(event.target===this) fecharModalInspecionarVisualMobile()">
+        <div class="bottom-sheet">
+            <div class="sheet-header">
+                <h3 id="modal-visual-titulo">👁️ Visual & Camadas</h3>
+                <button class="btn-secondary btn-small" onclick="fecharModalInspecionarVisualMobile()">✕</button>
+            </div>
+            <div class="paperdoll-container" id="paperdoll-composite-view"></div>
+            <div style="display:flex; justify-content:center; gap:6px;">
+                <label class="btn-secondary btn-small" style="cursor:pointer;">
+                    📷 Alterar Avatar
+                    <input type="file" accept="image/*" style="display:none;" onchange="atualizarAvatarBaseModalMobile(this)">
+                </label>
+                <button class="btn-secondary btn-small" onclick="removerAvatarBaseModalMobile()">✕ Sem Foto</button>
+            </div>
+            <div id="lista-equipamentos-visual-modal" style="max-height:180px; overflow-y:auto; display:flex; flex-direction:column; gap:4px;"></div>
+            <button class="btn-secondary" onclick="fecharModalInspecionarVisualMobile()">Fechar</button>
+        </div>
+    </div>
+
+    <!-- MODAL MULTIPLAYER P2P -->
+    <div id="modal-multiplayer" class="modal-overlay" onclick="if(event.target===this) fecharModalMultiplayerMobile()">
+        <div class="bottom-sheet">
+            <div class="sheet-header">
+                <h3>🌐 Conexão P2P</h3>
+                <button class="btn-secondary btn-small" onclick="fecharModalMultiplayerMobile()">✕</button>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:6px;">
+                <label style="font-size:0.7rem; color:var(--accent);">👤 Seu Nickname:</label>
+                <div style="display:flex; gap:4px;">
+                    <input type="text" id="input-meu-nickname-sheet" style="flex:1;" maxlength="20">
+                    <button class="btn-secondary btn-small" onclick="salvarMeuNicknameSheet()">Definir</button>
+                </div>
+            </div>
+            <button class="btn-primary" style="padding:10px;" onclick="fecharModalMultiplayerMobile(); dispararConfirmacaoHostMobile();">👑 Hospedar como Mestre</button>
+            <div style="display:flex; flex-direction:column; gap:4px; background:var(--bg-dark); padding:8px; border-radius:6px; border:1px solid var(--border-color);">
+                <label style="font-size:0.7rem;">Entrar na Sala do Mestre:</label>
+                <div style="display:flex; gap:4px;">
+                    <input type="text" id="input-sala-p2p-sheet" placeholder="ID da Sala..." style="flex:1;">
+                    <button class="btn-accent" onclick="conectarComoJogadorSheet()">Entrar</button>
+                </div>
+            </div>
+            <div id="info-sala-p2p-sheet" style="font-size:0.65rem; color:var(--text-muted); background:var(--bg-dark); padding:6px; border-radius:4px;">
+                Status: Desconectado
+            </div>
+            <button class="btn-secondary" onclick="fecharModalMultiplayerMobile()">Fechar</button>
+        </div>
+    </div>
+
+    <!-- MODAL CONFIRMAÇÃO DE HOSPEDAR (AVISO DE SALVAMENTO) -->
+    <div id="modal-confirmar-host" class="modal-overlay" onclick="if(event.target===this) cancelarConfirmacaoHostMobile()">
+        <div class="bottom-sheet">
+            <div class="sheet-header">
+                <h3 style="color:var(--danger);">⚠️ NÃO ESQUECE DE SALVAR!</h3>
+                <button class="btn-secondary btn-small" onclick="cancelarConfirmacaoHostMobile()">✕</button>
+            </div>
+            <p style="font-size:0.75rem; color:var(--text-main); line-height:1.4;">
+                Ao hospedar uma nova sala, certifique-se de ter salvo o estado da mesa atual para não perder nenhum personagem ou mapa.
+            </p>
+            <div style="display:flex; flex-direction:column; gap:6px;">
+                <button class="btn-primary" onclick="cancelarConfirmacaoHostMobile(); mudarAbaPrincipal('mesa');">💾 Ir para Saves</button>
+                <button id="btn-confirmar-host-mobile" class="btn-accent" disabled style="opacity:0.5; padding:10px;">Aguarde (3s)...</button>
+                <button class="btn-secondary" onclick="cancelarConfirmacaoHostMobile()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==========================================================================
+       SCRIPTS DA APLICAÇÃO MOBILE (COMPARTILHA INDEXEDDB & PROTOCOLO REDE)
+       ========================================================================== -->
+    <script>
+        /* ==========================================================================
+           CAMADA INDEXEDDB (MESMO BANCO DA VERSÃO DESKTOP)
+           ========================================================================== */
+        const DB_NAME = 'VTT_HS2_DATABASE';
+        const DB_VERSION = 1;
+        const STORE_NAME = 'app_data';
+
+        function abrirDB() {
+            return new Promise((resolve, reject) => {
+                const req = indexedDB.open(DB_NAME, DB_VERSION);
+                req.onupgradeneeded = (e) => {
+                    const db = e.target.result;
+                    if (!db.objectStoreNames.contains(STORE_NAME)) {
+                        db.createObjectStore(STORE_NAME);
+                    }
+                };
+                req.onsuccess = () => resolve(req.result);
+                req.onerror = () => reject(req.error);
+            });
+        }
+
+        async function dbSet(key, value) {
+            try {
+                const db = await abrirDB();
+                return new Promise((resolve, reject) => {
+                    const tx = db.transaction(STORE_NAME, 'readwrite');
+                    tx.objectStore(STORE_NAME).put(value, key);
+                    tx.oncomplete = () => resolve();
+                    tx.onerror = () => reject(tx.error);
+                });
+            } catch(e) { console.error("Erro IndexedDB ao salvar:", key, e); }
+        }
+
+        async function dbGet(key) {
+            try {
+                const db = await abrirDB();
+                return new Promise((resolve, reject) => {
+                    const tx = db.transaction(STORE_NAME, 'readonly');
+                    const req = tx.objectStore(STORE_NAME).get(key);
+                    req.onsuccess = () => resolve(req.result);
+                    req.onerror = () => reject(req.error);
+                });
+            } catch(e) { console.error("Erro IndexedDB ao ler:", key, e); return null; }
+        }
+
+        function gerarIdUnico() {
+            return 'id_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
+        }
+
+        function escaparTextoHtml(str) {
+            return String(str || '').replace(/[&<>"']/g, s => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[s]);
+        }
+
+        /* CONSTANTES PADRÃO */
+        const ORDEM_SLOTS_ZINDEX = { corpo: 2, acessorio: 3, cabeca: 4, maoSecundaria: 5, maoPrincipal: 6, outro: 7 };
+        const NOMES_SLOTS = { corpo: 'Torso / Armadura', cabeca: 'Cabeça / Elmo', maoPrincipal: 'Mão Principal', maoSecundaria: 'Mão Secundária', acessorio: 'Acessório / Capa', outro: 'Outro' };
+        const ICONES_SLOTS = { corpo: '🛡️', cabeca: '👑', maoPrincipal: '⚔️', maoSecundaria: '🛡️', acessorio: '📿', outro: '🎒' };
+        function obterNomeSlot(s) { return NOMES_SLOTS[s] || 'Equipamento'; }
+        function obterIconeSlot(s) { return ICONES_SLOTS[s] || '🛡️'; }
+
+        const PRESETS_PADRAO = {
+            sangrando: { nome: "Sangrando", icone: "🩸", danoTurno: -2, modAcerto: 0, modEsquiva: 0, modResistencia: 0, duracao: 3, impedeAgir: false },
+            atordoado: { nome: "Atordoado", icone: "💫", danoTurno: 0, modAcerto: -2, modEsquiva: -2, modResistencia: 0, duracao: 1, impedeAgir: true },
+            queimando: { nome: "Queimando", icone: "🔥", danoTurno: -3, modAcerto: 0, modEsquiva: 0, modResistencia: 0, duracao: 2, impedeAgir: false },
+            envenenado: { nome: "Envenenado", icone: "🧪", danoTurno: -1, modAcerto: -1, modEsquiva: 0, modResistencia: 0, duracao: 4, impedeAgir: false },
+            abençoado: { nome: "Abençoado", icone: "✨", danoTurno: 0, modAcerto: 2, modEsquiva: 1, modResistencia: 1, duracao: 3, impedeAgir: false }
+        };
+
+        const ARMAS_PADRAO = [
+            { id: 'arm_espada_longa', nome: 'Espada Longa', dadoAtaque: 20, bonusAtaque: 3, quantidadeDadosDano: 1, facesDadoDano: 8, modDano: 2, condicaoInf: '', condicaoDuracao: 1 },
+            { id: 'arm_arco_curto', nome: 'Arco Curto', dadoAtaque: 20, bonusAtaque: 4, quantidadeDadosDano: 1, facesDadoDano: 6, modDano: 2, condicaoInf: '', condicaoDuracao: 1 },
+            { id: 'arm_machado_guerra', nome: 'Machado de Guerra', dadoAtaque: 20, bonusAtaque: 2, quantidadeDadosDano: 1, facesDadoDano: 12, modDano: 3, condicaoInf: 'sangrando', condicaoDuracao: 2 },
+            { id: 'arm_adaga', nome: 'Adaga Ágil', dadoAtaque: 20, bonusAtaque: 5, quantidadeDadosDano: 1, facesDadoDano: 4, modDano: 3, condicaoInf: '', condicaoDuracao: 1 },
+            { id: 'arm_cajado_fogo', nome: 'Cajado das Chamas', dadoAtaque: 20, bonusAtaque: 2, quantidadeDadosDano: 2, facesDadoDano: 6, modDano: 1, condicaoInf: 'queimando', condicaoDuracao: 2 }
+        ];
+
+        const ITENS_PADRAO = [
+            { id: 'item_armadura_placas', nome: 'Armadura de Placas', tipo: 'equipamento', slot: 'corpo', icone: '🛡️', quantidade: 1, descricao: 'Pesada e resistente.', bonusHpMax: 15, bonusEsquiva: -1, bonusResistencia: 3, bonusIniciativa: -2, bonusAtaque: 0, bonusDano: 0, tipoAtaque: '', imagem: '', imagemVisivel: true },
+            { id: 'item_couro_batido', nome: 'Armadura de Couro Batido', tipo: 'equipamento', slot: 'corpo', icone: '🦺', quantidade: 1, descricao: 'Proteção flexível.', bonusHpMax: 5, bonusEsquiva: 1, bonusResistencia: 1, bonusIniciativa: 0, bonusAtaque: 0, bonusDano: 0, tipoAtaque: '', imagem: '', imagemVisivel: true },
+            { id: 'item_elmo_ferro', nome: 'Elmo de Ferro', tipo: 'equipamento', slot: 'cabeca', icone: '👑', quantidade: 1, descricao: 'Protege contra golpes na cabeça.', bonusHpMax: 5, bonusEsquiva: 0, bonusResistencia: 1, bonusIniciativa: 0, bonusAtaque: 0, bonusDano: 0, tipoAtaque: '', imagem: '', imagemVisivel: true },
+            { id: 'item_pocao_cura_menor', nome: 'Poção de Cura Menor', tipo: 'consumivel', slot: '', icone: '🧪', quantidade: 3, descricao: 'Restaura 10 PV.', efeitoHp: 10, bonusHpMax: 0, bonusEsquiva: 0, bonusResistencia: 0, bonusIniciativa: 0, bonusAtaque: 0, bonusDano: 0, tipoAtaque: '', imagem: '', imagemVisivel: true },
+            { id: 'item_tocha', nome: 'Tocha', tipo: 'utilitario', slot: '', icone: '🪵', quantidade: 4, descricao: 'Ilumina áreas escuras.', efeitoHp: 0, bonusHpMax: 0, bonusEsquiva: 0, bonusResistencia: 0, bonusIniciativa: 0, bonusAtaque: 0, bonusDano: 0, tipoAtaque: '', imagem: '', imagemVisivel: true },
+            { id: 'item_moedas_ouro', nome: 'Moedas de Ouro', tipo: 'tesouro', slot: '', icone: '🪙', quantidade: 50, descricao: 'Moedas reluzentes.', efeitoHp: 0, bonusHpMax: 0, bonusEsquiva: 0, bonusResistencia: 0, bonusIniciativa: 0, bonusAtaque: 0, bonusDano: 0, tipoAtaque: '', imagem: '', imagemVisivel: true }
+        ];
+
+        let listaCriaturas = [
+            {
+                id: 'cria_gideon',
+                nome: "Gideon",
+                tipo: "player",
+                hpAtual: 35,
+                hpMax: 35,
+                esquiva: 12,
+                resistencia: 2,
+                iniciativa: 10,
+                cor: "#00e5ff",
+                posicaoX: 200,
+                posicaoY: 200,
+                avatar: "",
+                condicoes: [],
+                inventario: [
+                    { id: 'inv_1', nome: "Poção de Cura Menor", tipo: "consumivel", icone: "🧪", quantidade: 2, efeitoHp: 10 },
+                    { id: 'inv_2', nome: "Tocha", tipo: "utilitario", icone: "🪵", quantidade: 3 }
+                ],
+                equipamentos: [
+                    { id: 'eq_1', nome: "Armadura de Couro", tipo: "equipamento", slot: "corpo", icone: "🦺", bonusHpMax: 5, bonusEsquiva: 1, bonusResistencia: 1 }
+                ],
+                listaAtaques: [
+                    { id: 'atk_1', nome: "Espada Longa", dadoAtaque: 20, bonusAtaque: 3, quantidadeDadosDano: 1, facesDadoDano: 8, modDano: 2 }
+                ]
+            }
+        ];
+        let PRESETS_CONDICOES = { ...PRESETS_PADRAO };
+        let presetsArmas = [ ...ARMAS_PADRAO ];
+        let presetsItens = [ ...ITENS_PADRAO ];
+        let listaCenariosSalvos = [];
+        let historicoChat = [];
+        let ordemIniciativa = [];
+        let indiceTurnoAtual = -1;
+        let mapaTiles = {};
+        let mapaProps = {};
+        let meuNickname = localStorage.getItem('vtt_user_nickname') || 'Jogador';
+        let countdownHostInterval = null;
+
+        // Modos e filtros
+        let abaFichasAtual = 'todos';
+        let subabaCompendioAtual = 'itens';
+        let filtroMochilaCompendioModal = 'todos';
+        let criaturaMochilaCompendioId = null;
+        let itemPresetParaEnviarMochilaId = null;
+        let itemEmEdicaoContexto = { modoPreset: false, idCriatura: null, idItem: null, ehEquipamento: false };
+        let armaEmEdicaoId = null;
+        let criaturaEmVisualizacaoId = null;
+        let criaturaSelecionadaTokenId = null;
+
+        // P2P Networking
+        let peerInstance = null;
+        let papelRede = 'offline';
+        let conexoesJogadores = [];
+        let conexaoHost = null;
+        let listaJogadoresOnline = [];
+
+        // Tabuleiro Touch & Gestures
+        let zoomNivel = 1;
+        let panX = 0, panY = 0;
+        let isTouchingMap = false;
+        let touchStartPoints = [];
+        let initialDistance = 0;
+        let initialZoom = 1;
+        let initialPan = { x: 0, y: 0 };
+        let tokenArrastandoId = null;
+        let tokenStartOffset = { x: 0, y: 0 };
+        let modoEditorAtivo = false;
+        let ferramentaEditor = { tipo: 'terreno', valor: 'chao_pedra' };
+
+        /* ==========================================================================
+           NAVEGAÇÃO POR ABAS
+           ========================================================================== */
+        function mudarAbaPrincipal(abaId, btnEl) {
+            document.querySelectorAll('.tab-view').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+
+            const view = document.getElementById('view-' + abaId);
+            if (view) view.classList.add('active');
+
+            if (btnEl) {
+                btnEl.classList.add('active');
+            } else {
+                const b = document.querySelector(`.nav-item[onclick*="${abaId}"]`);
+                if (b) b.classList.add('active');
+            }
+
+            if (abaId === 'tabuleiro') {
+                atualizarTransformTabuleiro();
+            } else if (abaId === 'fichas') {
+                renderizarFichasMobile();
+            } else if (abaId === 'chat') {
+                renderizarChatMobile();
+            } else if (abaId === 'compendios') {
+                renderizarCompendioItensMobile();
+                renderizarCompendioArmasMobile();
+            } else if (abaId === 'mesa') {
+                renderizarMesaMobile();
+            }
+        }
+
+        function alternarSubabaCompendio(sub) {
+            subabaCompendioAtual = sub;
+            document.getElementById('subtab-comp-itens').classList.toggle('active', sub === 'itens');
+            document.getElementById('subtab-comp-armas').classList.toggle('active', sub === 'armas');
+            document.getElementById('secao-compendio-itens').style.display = sub === 'itens' ? 'flex' : 'none';
+            document.getElementById('secao-compendio-armas').style.display = sub === 'armas' ? 'flex' : 'none';
+            if (sub === 'itens') renderizarCompendioItensMobile();
+            else renderizarCompendioArmasMobile();
+        }
+
+        /* ==========================================================================
+           LÓGICA DE DADOS, CÁLCULOS E PERSISTÊNCIA
+           ========================================================================== */
+        function normalizarTipoCriatura(tipo) {
+            const t = (tipo || '').toLowerCase().trim();
+            if (t === 'oponente' || t === 'vilao' || t === 'vilão' || t === 'inimigo' || t === 'monstro') return 'oponente';
+            if (t === 'personagem' || t === 'heroi' || t === 'herói' || t === 'aliado' || t === 'npc') return 'personagem';
+            return 'player';
+        }
+
+        function calcularHpMaxEfetivo(c) {
+            let bonus = 0;
+            (c.equipamentos || []).forEach(e => { bonus += (Number(e.bonusHpMax) || 0); });
+            return Math.max(1, (Number(c.hpMax) || 10) + bonus);
+        }
+
+        function calcularEsquivaEfetiva(c) {
+            let eq = Number(c.esquiva) || 10;
+            (c.equipamentos || []).forEach(e => { eq += (Number(e.bonusEsquiva) || 0); });
+            (c.condicoes || []).forEach(cond => { eq += (Number(cond.modEsquiva) || 0); });
+            return eq;
+        }
+
+        function calcularResistenciaEfetiva(c) {
+            let res = Number(c.resistencia) || 0;
+            (c.equipamentos || []).forEach(e => { res += (Number(e.bonusResistencia) || 0); });
+            (c.condicoes || []).forEach(cond => { res += (Number(cond.modResistencia) || 0); });
+            return Math.max(0, res);
+        }
+
+        function obterEquipamentosSobrepostos(c) {
+            return (c.equipamentos || [])
+                .filter(eq => eq.imagem && eq.imagemVisivel !== false)
+                .sort((a, b) => (ORDEM_SLOTS_ZINDEX[a.slot] || 5) - (ORDEM_SLOTS_ZINDEX[b.slot] || 5));
+        }
+
+        async function carregarDadosIniciais() {
+            const presetsC = await dbGet('vtt_presets_condicoes');
+            if (presetsC) PRESETS_CONDICOES = presetsC;
+
+            const armas = await dbGet('vtt_presets_armas');
+            if (armas && Array.isArray(armas)) presetsArmas = armas;
+
+            const itens = await dbGet('vtt_presets_itens');
+            if (itens && Array.isArray(itens)) presetsItens = itens;
+
+            const criats = await dbGet('vtt_criaturas');
+            if (criats && Array.isArray(criats) && criats.length > 0) {
+                listaCriaturas = criats.map(c => ({
+                    ...c,
+                    equipamentos: Array.isArray(c.equipamentos) ? c.equipamentos : [],
+                    inventario: Array.isArray(c.inventario) ? c.inventario : [],
+                    listaAtaques: Array.isArray(c.listaAtaques) ? c.listaAtaques : []
+                }));
+            } else {
+                // Criatura inicial padrão se vazio
+                listaCriaturas = [{
+                    id: gerarIdUnico(),
+                    nome: "Gideon",
+                    tipo: "player",
+                    hpAtual: 35,
+                    hpMax: 35,
+                    esquiva: 12,
+                    resistencia: 2,
+                    iniciativa: 10,
+                    cor: "#00e5ff",
+                    posicaoX: 200,
+                    posicaoY: 200,
+                    avatar: "",
+                    condicoes: [],
+                    inventario: [
+                        { id: gerarIdUnico(), nome: "Poção de Cura Menor", tipo: "consumivel", icone: "🧪", quantidade: 2, efeitoHp: 10 },
+                        { id: gerarIdUnico(), nome: "Tocha", tipo: "utilitario", icone: "🪵", quantidade: 3 }
+                    ],
+                    equipamentos: [
+                        { id: gerarIdUnico(), nome: "Armadura de Couro", tipo: "equipamento", slot: "corpo", icone: "🦺", bonusHpMax: 5, bonusEsquiva: 1, bonusResistencia: 1 }
+                    ],
+                    listaAtaques: [
+                        { id: gerarIdUnico(), nome: "Espada Longa", dadoAtaque: 20, bonusAtaque: 3, quantidadeDadosDano: 1, facesDadoDano: 8, modDano: 2 }
+                    ]
+                }];
+                await dbSet('vtt_criaturas', listaCriaturas);
+            }
+
+            const cenarios = await dbGet('vtt_cenarios_salvos');
+            if (cenarios && Array.isArray(cenarios)) listaCenariosSalvos = cenarios;
+
+            const logs = await dbGet('vtt_chat_logs');
+            if (logs && Array.isArray(logs)) historicoChat = logs;
+
+            const tiles = await dbGet('vtt_mapa_tiles');
+            if (tiles) mapaTiles = tiles;
+
+            const props = await dbGet('vtt_mapa_props');
+            if (props) mapaProps = props;
+
+            const mapaBg = await dbGet('vtt_mapa_bg');
+            if (mapaBg) aplicarEstiloMapaMobile(mapaBg);
+
+            renderizarFichasMobile();
+            renderizarTokensMapaMobile();
+            renderizarChatMobile();
+            renderizarMesaMobile();
+            desenharCanvasMapaMobile();
+            atualizarBadgeTurnoHeader();
+        }
+
+        function salvarDados() {
+            if (papelRede !== 'client') {
+                dbSet('vtt_criaturas', listaCriaturas);
+            }
+            broadcastRede('UPDATE_STATE', { listaCriaturas, ordemIniciativa, indiceTurnoAtual });
+            renderizarFichasMobile();
+            renderizarTokensMapaMobile();
+            atualizarBadgeTurnoHeader();
+        }
+
+        function salvarChat() {
+            if (papelRede !== 'client') {
+                dbSet('vtt_chat_logs', historicoChat);
+            }
+        }
+
+        function adicionarMensagemChat(texto, classeEstilo = '') {
+            const msg = { texto, classeEstilo };
+            historicoChat.push(msg);
+            if (historicoChat.length > 100) historicoChat.shift();
+            salvarChat();
+            renderizarChatMobile();
+            broadcastRede('CHAT_MSG', msg);
+        }
+
+        function renderizarChatMobile() {
+            const container = document.getElementById('mobile-chat-log');
+            if (!container) return;
+            container.innerHTML = historicoChat.map(m => `
+                <div class="chat-msg ${m.classeEstilo || ''}">${m.texto}</div>
+            `).join('');
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function enviarMensagemChatMobile() {
+            const input = document.getElementById('input-chat-mobile');
+            const texto = (input.value || '').trim();
+            if (!texto) return;
+            adicionarMensagemChat(`<b>${escaparTextoHtml(meuNickname)}:</b> ${escaparTextoHtml(texto)}`);
+            input.value = '';
+        }
+
+        function rolarDadoRapido(faces) {
+            const mod = Number(document.getElementById('input-mod-dado-rapido')?.value) || 0;
+            const res = Math.floor(Math.random() * faces) + 1;
+            const total = res + mod;
+            const modTxt = mod !== 0 ? ` (${mod > 0 ? '+' : ''}${mod}) = <b>${total}</b>` : '';
+            adicionarMensagemChat(`🎲 <b>${escaparTextoHtml(meuNickname)}</b> rolou 1d${faces}: [<b>${res}</b>]${modTxt}`, 'action');
+        }
+
+        /* ==========================================================================
+           CONTROLES TOUCH DO TABULEIRO / MAPA
+           ========================================================================== */
+        const tabuleiroWrapper = document.getElementById('tabuleiro-wrapper');
+        const tabuleiroJogo = document.getElementById('tabuleiro-jogo');
+
+        function atualizarTransformTabuleiro() {
+            tabuleiroJogo.style.transform = `translate(${panX}px, ${panY}px) scale(${zoomNivel})`;
+        }
+
+        function ajustarZoomMobile(delta) {
+            zoomNivel = Math.max(0.3, Math.min(3.0, zoomNivel + delta));
+            atualizarTransformTabuleiro();
+        }
+
+        function resetarVisaoMapaMobile() {
+            const w = tabuleiroWrapper.clientWidth;
+            const h = tabuleiroWrapper.clientHeight;
+            zoomNivel = Math.min(w / 1000, h / 1000) * 0.95;
+            panX = (w - 1000 * zoomNivel) / 2;
+            panY = (h - 1000 * zoomNivel) / 2;
+            atualizarTransformTabuleiro();
+        }
+
+        // Eventos Touch no Tabuleiro Wrapper
+        tabuleiroWrapper.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 1) {
+                isTouchingMap = true;
+                initialPan = { x: panX, y: panY };
+                touchStartPoints = [{ x: e.touches[0].clientX, y: e.touches[0].clientY }];
+            } else if (e.touches.length === 2) {
+                isTouchingMap = true;
+                const dx = e.touches[1].clientX - e.touches[0].clientX;
+                const dy = e.touches[1].clientY - e.touches[0].clientY;
+                initialDistance = Math.hypot(dx, dy);
+                initialZoom = zoomNivel;
+            }
+        }, { passive: false });
+
+        tabuleiroWrapper.addEventListener('touchmove', (e) => {
+            if (!isTouchingMap) return;
+            e.preventDefault();
+
+            if (tokenArrastandoId) {
+                // Arrastando token
+                const touch = e.touches[0];
+                const rect = tabuleiroJogo.getBoundingClientRect();
+                const relX = (touch.clientX - rect.left) / zoomNivel;
+                const relY = (touch.clientY - rect.top) / zoomNivel;
+
+                const tokenEl = document.getElementById('token-' + tokenArrastandoId);
+                if (tokenEl) {
+                    tokenEl.style.left = `${relX - 19}px`;
+                    tokenEl.style.top = `${relY - 19}px`;
+                }
+                return;
+            }
+
+            if (e.touches.length === 1) {
+                // Pan 1 dedo
+                const dx = e.touches[0].clientX - touchStartPoints[0].x;
+                const dy = e.touches[0].clientY - touchStartPoints[0].y;
+                panX = initialPan.x + dx;
+                panY = initialPan.y + dy;
+                atualizarTransformTabuleiro();
+            } else if (e.touches.length === 2) {
+                // Pinch zoom 2 dedos
+                const dx = e.touches[1].clientX - e.touches[0].clientX;
+                const dy = e.touches[1].clientY - e.touches[0].clientY;
+                const dist = Math.hypot(dx, dy);
+                if (initialDistance > 0) {
+                    const ratio = dist / initialDistance;
+                    zoomNivel = Math.max(0.3, Math.min(3.0, initialZoom * ratio));
+                    atualizarTransformTabuleiro();
+                }
+            }
+        }, { passive: false });
+
+        tabuleiroWrapper.addEventListener('touchend', (e) => {
+            if (tokenArrastandoId) {
+                const criatura = listaCriaturas.find(c => c.id === tokenArrastandoId);
+                if (criatura) {
+                    const tokenEl = document.getElementById('token-' + tokenArrastandoId);
+                    const posX = parseFloat(tokenEl.style.left) || criatura.posicaoX;
+                    const posY = parseFloat(tokenEl.style.top) || criatura.posicaoY;
+                    criatura.posicaoX = Math.round(posX / 40) * 40;
+                    criatura.posicaoY = Math.round(posY / 40) * 40;
+                    salvarDados();
+                    broadcastRede('MOVE_TOKEN', { id: criatura.id, x: criatura.posicaoX, y: criatura.posicaoY });
+                }
+                tokenArrastandoId = null;
+            }
+            if (e.touches.length === 0) {
+                isTouchingMap = false;
+            }
+        });
+
+        function renderizarTokensMapaMobile() {
+            tabuleiroJogo.querySelectorAll('.token').forEach(t => t.remove());
+
+            listaCriaturas.forEach(criatura => {
+                if (criatura.noMapa === false) return;
+                const ehAtivo = ordemIniciativa[indiceTurnoAtual] === criatura.id;
+                const tokenEl = document.createElement('div');
+                tokenEl.className = `token ${ehAtivo ? 'active-turn' : ''}`;
+                tokenEl.id = `token-${criatura.id}`;
+                tokenEl.style.left = `${criatura.posicaoX || 0}px`;
+                tokenEl.style.top = `${criatura.posicaoY || 0}px`;
+                if (criatura.avatar) {
+                    tokenEl.style.backgroundImage = `url('${criatura.avatar}')`;
+                } else {
+                    tokenEl.style.backgroundColor = criatura.cor || '#00e5ff';
+                    tokenEl.innerText = (criatura.nome || '?').substring(0, 3).toUpperCase();
+                }
+
+                // Equipamentos sobrepostos no token
+                const sobrepostos = obterEquipamentosSobrepostos(criatura);
+                sobrepostos.forEach(eq => {
+                    const layer = document.createElement('div');
+                    layer.className = 'token-layer-equip';
+                    layer.style.backgroundImage = `url('${eq.imagem}')`;
+                    layer.style.zIndex = ORDEM_SLOTS_ZINDEX[eq.slot] || 5;
+                    tokenEl.appendChild(layer);
+                });
+
+                // Touch para mover token
+                tokenEl.addEventListener('touchstart', (ev) => {
+                    ev.stopPropagation();
+                    if (papelRede === 'client') {
+                        adicionarMensagemChat(`⛔ Apenas o Mestre pode mover tokens!`, 'damage');
+                        return;
+                    }
+                    tokenArrastandoId = criatura.id;
+                    criaturaSelecionadaTokenId = criatura.id;
+                }, { passive: false });
+
+                tabuleiroJogo.appendChild(tokenEl);
+            });
+        }
+
+        function desenharCanvasMapaMobile() {
+            const canvas = document.getElementById('canvas-mapa');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, 1000, 1000);
+
+            for (const chave in mapaTiles) {
+                const [gx, gy] = chave.split(',').map(Number);
+                const tipo = mapaTiles[chave];
+                ctx.fillStyle = tipo === 'chao_pedra' ? '#2e3440' : (tipo === 'chao_madeira' ? '#4a3728' : (tipo === 'grama' ? '#2e5339' : (tipo === 'agua' ? '#1e3a5f' : '#000')));
+                ctx.fillRect(gx * 40, gy * 40, 40, 40);
+            }
+
+            ctx.font = '24px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            for (const chave in mapaProps) {
+                const [gx, gy] = chave.split(',').map(Number);
+                ctx.fillText(mapaProps[chave], gx * 40 + 20, gy * 40 + 20);
+            }
+        }
+
+        function togglePaletaEditor(forcado) {
+            const el = document.getElementById('mobile-editor-palette');
+            modoEditorAtivo = (typeof forcado === 'boolean') ? forcado : !modoEditorAtivo;
+            el.style.display = modoEditorAtivo ? 'flex' : 'none';
+        }
+
+        document.querySelectorAll('.btn-palette-item').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.btn-palette-item').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                ferramentaEditor = { tipo: btn.dataset.tipo, valor: btn.dataset.valor };
+            });
+        });
+
+        // Pintura no mapa pelo Mestre
+        tabuleiroJogo.addEventListener('click', (e) => {
+            if (!modoEditorAtivo || papelRede === 'client') return;
+            const rect = tabuleiroJogo.getBoundingClientRect();
+            const x = (e.clientX - rect.left) / zoomNivel;
+            const y = (e.clientY - rect.top) / zoomNivel;
+            const gx = Math.floor(x / 40);
+            const gy = Math.floor(y / 40);
+            const chave = `${gx},${gy}`;
+
+            if (ferramentaEditor.tipo === 'borracha') {
+                delete mapaTiles[chave];
+                delete mapaProps[chave];
+            } else if (ferramentaEditor.tipo === 'terreno') {
+                mapaTiles[chave] = ferramentaEditor.valor;
+            } else if (ferramentaEditor.tipo === 'prop') {
+                mapaProps[chave] = ferramentaEditor.valor;
+            }
+
+            dbSet('vtt_mapa_tiles', mapaTiles);
+            dbSet('vtt_mapa_props', mapaProps);
+            desenharCanvasMapaMobile();
+            broadcastRede('SYNC_FULL', { mapaTiles, mapaProps });
+        });
+
+        function carregarMapaFundoMobile(input) {
+            const file = input.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const dataUrl = e.target.result;
+                aplicarEstiloMapaMobile(dataUrl);
+                dbSet('vtt_mapa_bg', dataUrl);
+                broadcastRede('UPDATE_MAPA_BG', dataUrl);
+            };
+            reader.readAsDataURL(file);
+            input.value = '';
+        }
+
+        function aplicarEstiloMapaMobile(url) {
+            tabuleiroJogo.style.backgroundImage = `url('${url}')`;
+            tabuleiroJogo.style.backgroundSize = 'cover';
+        }
+
+        function limparTodoMapaMobile() {
+            if (!confirm("Limpar todo o mapa desenhado?")) return;
+            mapaTiles = {};
+            mapaProps = {};
+            dbSet('vtt_mapa_tiles', mapaTiles);
+            dbSet('vtt_mapa_props', mapaProps);
+            desenharCanvasMapaMobile();
+            broadcastRede('SYNC_FULL', { mapaTiles, mapaProps });
+        }
+
+        /* ==========================================================================
+           ABA 2: FICHAS DE PERSONAGENS & OPONENTES
+           ========================================================================== */
+        function filtrarAbaFichasMobile(tipo, btn) {
+            abaFichasAtual = tipo;
+            document.querySelectorAll('#filtro-fichas-chips .chip').forEach(c => c.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+            renderizarFichasMobile();
+        }
+
+        function renderizarFichasMobile() {
+            const container = document.getElementById('lista-fichas-container');
+            if (!container) return;
+
+            const termo = (document.getElementById('busca-fichas-mobile')?.value || '').toLowerCase().trim();
+            let lista = listaCriaturas;
+
+            if (abaFichasAtual !== 'todos') {
+                lista = lista.filter(c => normalizarTipoCriatura(c.tipo) === abaFichasAtual);
+            }
+
+            if (termo) {
+                lista = lista.filter(c => 
+                    (c.nome || '').toLowerCase().includes(termo) ||
+                    (c.condicoes || []).some(cond => (cond.nome || '').toLowerCase().includes(termo)) ||
+                    (c.listaAtaques || []).some(atk => (atk.nome || '').toLowerCase().includes(termo))
+                );
+            }
+
+            if (lista.length === 0) {
+                container.innerHTML = `<div style="text-align:center; padding:20px; color:var(--text-muted); font-size:0.75rem;">Nenhuma entidade encontrada.</div>`;
+                return;
+            }
+
+            container.innerHTML = lista.map(c => {
+                const hpMaxEfetivo = calcularHpMaxEfetivo(c);
+                const pct = Math.max(0, Math.min(100, (c.hpAtual / hpMaxEfetivo) * 100));
+                const tipoNorm = normalizarTipoCriatura(c.tipo);
+                const corBarra = pct > 30 ? (tipoNorm === 'oponente' ? 'var(--danger)' : 'var(--success)') : 'var(--danger)';
+                const esquiva = calcularEsquivaEfetiva(c);
+                const res = calcularResistenciaEfetiva(c);
+                const ehAtivo = ordemIniciativa[indiceTurnoAtual] === c.id;
+
+                // Avatar ou iniciais
+                const avatarInner = c.avatar 
+                    ? `<div style="width:100%; height:100%; background-image:url('${c.avatar}'); background-size:cover;"></div>` 
+                    : `<span>${(c.nome || '?').substring(0,3).toUpperCase()}</span>`;
+
+                // Condições tags
+                const condicoesTags = (c.condicoes || []).map(cond => `
+                    <span class="stat-badge" onclick="removerCondicaoMobile('${c.id}', '${cond.id}')" title="Toque para remover">${cond.icone || '🏷️'} ${escaparTextoHtml(cond.nome)} ✕</span>
+                `).join('');
+
+                // Itens da Mochila
+                const mochilaHtml = (c.inventario || []).map(item => `
+                    <div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-dark); padding:4px 6px; border-radius:4px; font-size:0.68rem;">
+                        <div style="display:flex; align-items:center; gap:4px;">
+                            <span>${item.icone || '🏷️'}</span>
+                            <strong>${escaparTextoHtml(item.nome)}</strong>
+                            <span style="color:var(--text-muted);">x${item.quantidade || 1}</span>
+                        </div>
+                        <div style="display:flex; gap:2px;">
+                            ${item.tipo === 'consumivel' ? `<button class="btn-small" style="background:var(--success); color:#000; font-weight:700;" onclick="usarItemConsumivelMobile('${c.id}', '${item.id}')">🧪 Usar</button>` : ''}
+                            ${item.tipo === 'equipamento' ? `<button class="btn-small btn-accent" onclick="equiparItemMobile('${c.id}', '${item.id}')">🛡️ Equipar</button>` : ''}
+                            <button class="btn-danger btn-small" onclick="removerItemMochilaMobile('${c.id}', '${item.id}')" style="padding:1px 4px;">✕</button>
+                        </div>
+                    </div>
+                `).join('');
+
+                // Equipamentos
+                const equipamentosHtml = (c.equipamentos || []).map(eq => `
+                    <div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-dark); padding:4px 6px; border-radius:4px; font-size:0.68rem;">
+                        <div style="display:flex; align-items:center; gap:4px;">
+                            <span class="slot-badge">${obterIconeSlot(eq.slot)}</span>
+                            <strong>${escaparTextoHtml(eq.nome)}</strong>
+                        </div>
+                        <div style="display:flex; gap:2px;">
+                            <button class="btn-secondary btn-small" onclick="desequiparItemMobile('${c.id}', '${eq.id}')" title="Guardar na Mochila">↩️</button>
+                            <button class="btn-danger btn-small" onclick="removerEquipamentoMobile('${c.id}', '${eq.id}')" style="padding:1px 4px;">✕</button>
+                        </div>
+                    </div>
+                `).join('');
+
+                // Ações / Ataques
+                const ataquesHtml = (c.listaAtaques || []).map(atk => `
+                    <div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-dark); padding:4px 6px; border-radius:4px; font-size:0.68rem;">
+                        <div>
+                            <strong>⚔️ ${escaparTextoHtml(atk.nome)}</strong>
+                            <div style="font-size:0.58rem; color:var(--text-muted);">+${atk.bonusAtaque || 0} Acerto | ${atk.quantidadeDadosDano}d${atk.facesDadoDano}+${atk.modDano}</div>
+                        </div>
+                        <div style="display:flex; gap:2px;">
+                            <button class="btn-accent btn-small" onclick="executarAtaqueMobile('${c.id}', '${atk.id}', false)">Rolar</button>
+                            <button class="btn-small" style="background:var(--turn-glow); color:#000; font-weight:800;" onclick="executarAtaqueMobile('${c.id}', '${atk.id}', true)">Crítico</button>
+                        </div>
+                    </div>
+                `).join('');
+
+                return `
+                <div class="mobile-creature-card" style="border-left-color:${c.cor || 'var(--primary)'}; ${ehAtivo ? 'box-shadow:0 0 10px var(--turn-glow);' : ''}">
+                    <div class="card-top">
+                        <div class="avatar-box" style="background-color:${c.cor || '#00e5ff'};" onclick="abrirModalInspecionarVisualMobile('${c.id}')">
+                            ${avatarInner}
+                        </div>
+                        <div class="card-title-area">
+                            <strong>${escaparTextoHtml(c.nome)} ${ehAtivo ? '⭐ [VEZ]' : ''}</strong>
+                            <small>${tipoNorm === 'oponente' ? '💀 Oponente' : (tipoNorm === 'player' ? '🛡️ Herói' : '👤 Personagem')}</small>
+                        </div>
+                        <button class="btn-secondary btn-small" onclick="abrirModalInspecionarVisualMobile('${c.id}')" title="Visual & Equipamentos">👁️</button>
+                        <button class="btn-danger btn-small" onclick="removerCriaturaMobile('${c.id}')" style="padding:2px 5px;">✕</button>
+                    </div>
+
+                    <!-- VIDA E STEPPERS -->
+                    <div class="hp-section">
+                        <div class="hp-bar-bg">
+                            <div class="hp-bar-fill" style="width:${pct}%; background-color:${corBarra};"></div>
+                            <div class="hp-bar-text">${c.hpAtual} / ${hpMaxEfetivo} PV</div>
+                        </div>
+                        <div class="hp-steppers">
+                            <button class="btn-stepper sub" onclick="alterarHpMobile('${c.id}', -5)">-5</button>
+                            <button class="btn-stepper sub" onclick="alterarHpMobile('${c.id}', -1)">-1</button>
+                            <button class="btn-stepper add" onclick="alterarHpMobile('${c.id}', 1)">+1</button>
+                            <button class="btn-stepper add" onclick="alterarHpMobile('${c.id}', 5)">+5</button>
+                        </div>
+                    </div>
+
+                    <!-- STATS STRIP -->
+                    <div class="stats-strip">
+                        <div class="stat-item"><label>Esq</label><span>${esquiva}</span></div>
+                        <div class="stat-item"><label>Res</label><span>${res}</span></div>
+                        <div class="stat-item"><label>Inic</label><span>${c.iniciativa || 0}</span></div>
+                        <div class="stat-item"><label>Máx PV</label><span>${hpMaxEfetivo}</span></div>
+                    </div>
+
+                    <!-- CONDIÇÕES -->
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div style="display:flex; gap:3px; flex-wrap:wrap; flex:1;">
+                            ${condicoesTags || '<span style="font-size:0.58rem; color:var(--text-muted); font-style:italic;">Sem condições</span>'}
+                        </div>
+                        <select onchange="aplicarPresetCondicaoMobile('${c.id}', this.value); this.value='';" style="padding:2px; font-size:0.6rem; width:80px;">
+                            <option value="">+ Condição</option>
+                            ${Object.keys(PRESETS_CONDICOES).map(k => `<option value="${k}">${PRESETS_CONDICOES[k].icone || '🏷️'} ${PRESETS_CONDICOES[k].nome}</option>`).join('')}
+                        </select>
+                    </div>
+
+                    <!-- ACCORDION EQUIPAMENTOS -->
+                    <div class="accordion-header" onclick="toggleAccordion('eq-${c.id}')">
+                        <span>🛡️ Equipamentos (${(c.equipamentos || []).length})</span>
+                        <span id="arrow-eq-${c.id}">▼</span>
+                    </div>
+                    <div class="accordion-body" id="body-eq-${c.id}">
+                        ${equipamentosHtml || '<span style="font-size:0.6rem; color:var(--text-muted); font-style:italic;">Nenhum equipamento equipado.</span>'}
+                    </div>
+
+                    <!-- ACCORDION MOCHILA COM BOTÃO COMPÊNDIO -->
+                    <div class="accordion-header" onclick="toggleAccordion('moch-${c.id}')">
+                        <span>🎒 Mochila (${(c.inventario || []).length})</span>
+                        <div style="display:flex; gap:4px; align-items:center;">
+                            <button class="btn-accent btn-small" onclick="event.stopPropagation(); abrirModalMochilaCompendioMobile('${c.id}')" title="Pegar itens do compêndio">🎒 Compêndio</button>
+                            <span id="arrow-moch-${c.id}">▼</span>
+                        </div>
+                    </div>
+                    <div class="accordion-body" id="body-moch-${c.id}">
+                        ${mochilaHtml || '<span style="font-size:0.6rem; color:var(--text-muted); font-style:italic;">Mochila vazia.</span>'}
+                    </div>
+
+                    <!-- ACCORDION AÇÕES -->
+                    <div class="accordion-header" onclick="toggleAccordion('atk-${c.id}')">
+                        <span>⚔️ Ações (${(c.listaAtaques || []).length})</span>
+                        <span id="arrow-atk-${c.id}">▼</span>
+                    </div>
+                    <div class="accordion-body" id="body-atk-${c.id}">
+                        ${ataquesHtml || '<span style="font-size:0.6rem; color:var(--text-muted); font-style:italic;">Sem ataques configurados.</span>'}
+                    </div>
+                </div>
+                `;
+            }).join('');
+        }
+
+        function toggleAccordion(id) {
+            const body = document.getElementById('body-' + id);
+            const arrow = document.getElementById('arrow-' + id);
+            if (!body) return;
+            const fechado = (body.style.display === 'none');
+            body.style.display = fechado ? 'flex' : 'none';
+            if (arrow) arrow.innerText = fechado ? '▼' : '▶';
+        }
+
+        function alterarHpMobile(idCriatura, delta) {
+            const c = listaCriaturas.find(i => i.id === idCriatura);
+            if (!c) return;
+            const max = calcularHpMaxEfetivo(c);
+            c.hpAtual = Math.max(0, Math.min(max, (Number(c.hpAtual) || 0) + delta));
+            salvarDados();
+        }
+
+        function aplicarPresetCondicaoMobile(idCriatura, chave) {
+            if (!chave) return;
+            const c = listaCriaturas.find(i => i.id === idCriatura);
+            const p = PRESETS_CONDICOES[chave];
+            if (!c || !p) return;
+            if (!Array.isArray(c.condicoes)) c.condicoes = [];
+            c.condicoes.push({ id: gerarIdUnico(), ...p });
+            salvarDados();
+            adicionarMensagemChat(`✨ <b>${escaparTextoHtml(c.nome)}</b> recebeu a condição <b>${p.icone} ${escaparTextoHtml(p.nome)}</b>!`, 'round');
+        }
+
+        function removerCondicaoMobile(idCriatura, idCond) {
+            const c = listaCriaturas.find(i => i.id === idCriatura);
+            if (!c || !Array.isArray(c.condicoes)) return;
+            c.condicoes = c.condicoes.filter(cond => cond.id !== idCond);
+            salvarDados();
+        }
+
+        function usarItemConsumivelMobile(idCriatura, idItem) {
+            const c = listaCriaturas.find(i => i.id === idCriatura);
+            if (!c || !Array.isArray(c.inventario)) return;
+            const idx = c.inventario.findIndex(i => i.id === idItem);
+            if (idx === -1) return;
+            const item = c.inventario[idx];
+
+            if (item.efeitoHp) {
+                const max = calcularHpMaxEfetivo(c);
+                c.hpAtual = Math.max(0, Math.min(max, c.hpAtual + item.efeitoHp));
+                adicionarMensagemChat(`🧪 <b>${escaparTextoHtml(c.nome)}</b> usou <b>${escaparTextoHtml(item.nome)}</b> e recuperou <b>+${item.efeitoHp} PV</b>!`, 'action');
+            }
+
+            if (item.quantidade > 1) item.quantidade -= 1;
+            else c.inventario.splice(idx, 1);
+            salvarDados();
+        }
+
+        function equiparItemMobile(idCriatura, idItem) {
+            const c = listaCriaturas.find(i => i.id === idCriatura);
+            if (!c) return;
+            if (!Array.isArray(c.inventario)) c.inventario = [];
+            if (!Array.isArray(c.equipamentos)) c.equipamentos = [];
+
+            const idx = c.inventario.findIndex(i => i.id === idItem);
+            if (idx === -1) return;
+            const item = c.inventario[idx];
+
+            const slotAlvo = item.slot || 'corpo';
+            const eqExistenteIdx = c.equipamentos.findIndex(e => (e.slot || 'corpo') === slotAlvo);
+            if (eqExistenteIdx !== -1) {
+                const des = c.equipamentos.splice(eqExistenteIdx, 1)[0];
+                const invExist = c.inventario.find(i => i.nome === des.nome);
+                if (invExist) invExist.quantidade = (invExist.quantidade || 1) + 1;
+                else c.inventario.push({ ...des, quantidade: 1, equipado: false });
+            }
+
+            if (item.quantidade > 1) item.quantidade -= 1;
+            else c.inventario.splice(idx, 1);
+
+            c.equipamentos.push({ ...item, id: gerarIdUnico(), slot: slotAlvo, equipado: true });
+            if (item.bonusHpMax) c.hpAtual += item.bonusHpMax;
+
+            salvarDados();
+            adicionarMensagemChat(`🛡️ <b>${escaparTextoHtml(c.nome)}</b> equipou <b>${escaparTextoHtml(item.nome)}</b>!`, 'action');
+        }
+
+        function desequiparItemMobile(idCriatura, idEquip) {
+            const c = listaCriaturas.find(i => i.id === idCriatura);
+            if (!c || !Array.isArray(c.equipamentos)) return;
+            const idx = c.equipamentos.findIndex(e => e.id === idEquip);
+            if (idx === -1) return;
+            const eq = c.equipamentos.splice(idx, 1)[0];
+
+            if (!Array.isArray(c.inventario)) c.inventario = [];
+            const invExist = c.inventario.find(i => i.nome === eq.nome);
+            if (invExist) invExist.quantidade = (invExist.quantidade || 1) + 1;
+            else c.inventario.push({ ...eq, id: gerarIdUnico(), quantidade: 1, equipado: false });
+
+            const max = calcularHpMaxEfetivo(c);
+            if (c.hpAtual > max) c.hpAtual = max;
+
+            salvarDados();
+            adicionarMensagemChat(`↩️ <b>${escaparTextoHtml(c.nome)}</b> desequipou <b>${escaparTextoHtml(eq.nome)}</b>.`, 'round');
+        }
+
+        function removerItemMochilaMobile(idCriatura, idItem) {
+            const c = listaCriaturas.find(i => i.id === idCriatura);
+            if (!c || !Array.isArray(c.inventario)) return;
+            c.inventario = c.inventario.filter(i => i.id !== idItem);
+            salvarDados();
+        }
+
+        function removerEquipamentoMobile(idCriatura, idEquip) {
+            const c = listaCriaturas.find(i => i.id === idCriatura);
+            if (!c || !Array.isArray(c.equipamentos)) return;
+            c.equipamentos = c.equipamentos.filter(e => e.id !== idEquip);
+            salvarDados();
+        }
+
+        function removerCriaturaMobile(id) {
+            if (!confirm("Excluir definitivamente esta criatura?")) return;
+            listaCriaturas = listaCriaturas.filter(c => c.id !== id);
+            ordemIniciativa = ordemIniciativa.filter(i => i !== id);
+            salvarDados();
+        }
+
+        function executarAtaqueMobile(idCriatura, idAtk, ehCritico = false) {
+            const c = listaCriaturas.find(i => i.id === idCriatura);
+            if (!c) return;
+            const atk = (c.listaAtaques || []).find(a => a.id === idAtk);
+            if (!atk) return;
+
+            const dadoAtk = atk.dadoAtaque || 20;
+            const bonusAtk = atk.bonusAtaque || 0;
+            const rolagemAtk = Math.floor(Math.random() * dadoAtk) + 1;
+            const totalAtk = rolagemAtk + bonusAtk;
+
+            const qtdDados = (atk.quantidadeDadosDano || 1) * (ehCritico ? 2 : 1);
+            const faces = atk.facesDadoDano || 6;
+            const modDano = atk.modDano || 0;
+            let somaDano = 0;
+            const rolagensDano = [];
+            for (let i = 0; i < qtdDados; i++) {
+                const r = Math.floor(Math.random() * faces) + 1;
+                rolagensDano.push(r);
+                somaDano += r;
+            }
+            const totalDano = Math.max(1, somaDano + modDano);
+
+            const critBadge = ehCritico ? ' <span style="background:var(--turn-glow); color:#000; font-weight:800; padding:1px 4px; border-radius:3px;">CRÍTICO!</span>' : '';
+            adicionarMensagemChat(`
+                ⚔️ <b>${escaparTextoHtml(c.nome)}</b> atacou com <b>${escaparTextoHtml(atk.nome)}</b>!${critBadge}<br>
+                🎯 <b>Acerto:</b> [${rolagemAtk}] + ${bonusAtk} = <b>${totalAtk}</b><br>
+                💥 <b>Dano:</b> [${rolagensDano.join('+')}] + ${modDano} = <b style="color:var(--danger); font-size:0.85rem;">${totalDano} DANO</b>
+            `, 'action');
+        }
+
+        /* ==========================================================================
+           COMPÊNDIO DE ITENS & ARSENAL
+           ========================================================================== */
+        function renderizarCompendioItensMobile() {
+            const container = document.getElementById('lista-compendio-itens-mobile');
+            if (!container) return;
+            const termo = (document.getElementById('busca-compendio-itens-mobile')?.value || '').toLowerCase().trim();
+            let itens = presetsItens;
+            if (termo) itens = itens.filter(i => (i.nome || '').toLowerCase().includes(termo));
+
+            container.innerHTML = itens.map(item => `
+                <div class="compendio-card">
+                    <div style="display:flex; align-items:center; gap:6px; min-width:0; flex:1;">
+                        <span style="font-size:1.1rem;">${item.icone || '🏷️'}</span>
+                        <div style="min-width:0; flex:1;">
+                            <strong style="font-size:0.75rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; display:block;">${escaparTextoHtml(item.nome)}</strong>
+                            <small style="font-size:0.6rem; color:var(--text-muted); text-transform:capitalize;">${item.tipo}${item.slot ? ' • ' + obterNomeSlot(item.slot) : ''}</small>
+                        </div>
+                    </div>
+                    <div style="display:flex; gap:3px;">
+                        <button class="btn-accent btn-small" onclick="abrirModalEnviarItemMochilaMobile('${item.id}')" title="Enviar para Mochila">🎒 Mochila</button>
+                        <button class="btn-secondary btn-small" onclick="abrirModalEditarItemMobile(null, '${item.id}', true)">✏️</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderizarCompendioArmasMobile() {
+            const container = document.getElementById('lista-compendio-armas-mobile');
+            if (!container) return;
+            const termo = (document.getElementById('busca-compendio-armas-mobile')?.value || '').toLowerCase().trim();
+            let armas = presetsArmas;
+            if (termo) armas = armas.filter(a => (a.nome || '').toLowerCase().includes(termo));
+
+            container.innerHTML = armas.map(arma => `
+                <div class="compendio-card">
+                    <div>
+                        <strong style="font-size:0.75rem;">⚔️ ${escaparTextoHtml(arma.nome)}</strong>
+                        <div style="font-size:0.6rem; color:var(--text-muted);">+${arma.bonusAtaque || 0} Acerto | ${arma.quantidadeDadosDano}d${arma.facesDadoDano}+${arma.modDano || 0}</div>
+                    </div>
+                    <div style="display:flex; gap:3px;">
+                        <button class="btn-secondary btn-small" onclick="carregarArmaParaEdicaoMobile('${arma.id}')">✏️</button>
+                        <button class="btn-danger btn-small" onclick="excluirArmaArsenalMobile('${arma.id}')">✕</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        /* MOCHILA COMPÊNDIO & TRANSFERÊNCIA DIRETA */
+        function abrirModalMochilaCompendioMobile(idCriatura) {
+            criaturaMochilaCompendioId = idCriatura;
+            filtroMochilaCompendioModal = 'todos';
+            const c = listaCriaturas.find(i => i.id === idCriatura);
+            document.getElementById('titulo-mochila-compendio-modal').innerText = c ? `🎒 Mochila de: ${c.nome}` : '🎒 Itens para a Mochila';
+            renderizarListaMochilaCompendioModal();
+            document.getElementById('modal-mochila-compendio').style.display = 'flex';
+        }
+
+        function fecharModalMochilaCompendioMobile() {
+            document.getElementById('modal-mochila-compendio').style.display = 'none';
+            criaturaMochilaCompendioId = null;
+        }
+
+        function filtrarMochilaCompendioModal(cat, btn) {
+            filtroMochilaCompendioModal = cat;
+            document.querySelectorAll('#chips-mochila-compendio .chip').forEach(c => c.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+            renderizarListaMochilaCompendioModal();
+        }
+
+        function renderizarListaMochilaCompendioModal() {
+            const container = document.getElementById('lista-mochila-compendio-modal');
+            if (!container) return;
+            const termo = (document.getElementById('busca-mochila-compendio-modal')?.value || '').toLowerCase().trim();
+            let itens = presetsItens;
+            if (filtroMochilaCompendioModal !== 'todos') itens = itens.filter(i => i.tipo === filtroMochilaCompendioModal);
+            if (termo) itens = itens.filter(i => (i.nome || '').toLowerCase().includes(termo));
+
+            container.innerHTML = itens.map(item => `
+                <div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-card); padding:5px 8px; border-radius:6px; border:1px solid var(--border-color); font-size:0.72rem;">
+                    <div style="display:flex; align-items:center; gap:6px;">
+                        <span>${item.icone || '🏷️'}</span>
+                        <strong>${escaparTextoHtml(item.nome)}</strong>
+                    </div>
+                    <button class="btn-accent btn-small" onclick="adicionarItemDoCompendioParaMochila('${criaturaMochilaCompendioId}', '${item.id}', 1)">+ Mochila</button>
+                </div>
+            `).join('');
+        }
+
+        function adicionarItemDoCompendioParaMochila(idCriatura, idPreset, quantidade = 1) {
+            const c = listaCriaturas.find(i => i.id === idCriatura);
+            const preset = presetsItens.find(p => p.id === idPreset);
+            if (!c || !preset) return false;
+
+            if (!Array.isArray(c.inventario)) c.inventario = [];
+            const qtdNum = Math.max(1, parseInt(quantidade, 10) || 1);
+
+            const existente = c.inventario.find(i => i.nome === preset.nome && i.tipo === preset.tipo);
+            if (existente) {
+                existente.quantidade = (existente.quantidade || 1) + qtdNum;
+            } else {
+                c.inventario.push({
+                    id: gerarIdUnico(),
+                    nome: preset.nome,
+                    tipo: preset.tipo,
+                    icone: preset.icone,
+                    quantidade: qtdNum,
+                    descricao: preset.descricao || '',
+                    slot: preset.slot || '',
+                    bonusHpMax: preset.bonusHpMax || 0,
+                    bonusEsquiva: preset.bonusEsquiva || 0,
+                    bonusResistencia: preset.bonusResistencia || 0,
+                    bonusIniciativa: preset.bonusIniciativa || 0,
+                    bonusAtaque: preset.bonusAtaque || 0,
+                    bonusDano: preset.bonusDano || 0,
+                    tipoAtaque: preset.tipoAtaque || '',
+                    efeitoHp: preset.efeitoHp || 0,
+                    imagem: preset.imagem || '',
+                    imagemVisivel: preset.imagemVisivel !== false,
+                    equipado: false
+                });
+            }
+
+            salvarDados();
+            adicionarMensagemChat(`🎒 <b>${escaparTextoHtml(c.nome)}</b> guardou <b>${qtdNum > 1 ? qtdNum + 'x ' : ''}${escaparTextoHtml(preset.nome)}</b> na mochila!`, 'action');
+            return true;
+        }
+
+        function abrirModalEnviarItemMochilaMobile(idPreset) {
+            itemPresetParaEnviarMochilaId = idPreset;
+            const preset = presetsItens.find(p => p.id === idPreset);
+            if (!preset) return;
+
+            document.getElementById('info-item-enviar-mochila').innerHTML = `
+                ${preset.icone || '🏷️'} <strong>${escaparTextoHtml(preset.nome)}</strong> (${preset.tipo})
+            `;
+            document.getElementById('qtd-enviar-item-mochila').value = '1';
+
+            const container = document.getElementById('lista-criaturas-enviar-mochila');
+            container.innerHTML = listaCriaturas.map(c => `
+                <div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-card); padding:5px 8px; border-radius:6px; border:1px solid var(--border-color); font-size:0.72rem;">
+                    <strong>${normalizarTipoCriatura(c.tipo) === 'oponente' ? '💀' : '🛡️'} ${escaparTextoHtml(c.nome)}</strong>
+                    <button class="btn-accent btn-small" onclick="confirmarEnviarItemMochilaMobile('${c.id}')">Colocar</button>
+                </div>
+            `).join('');
+
+            document.getElementById('modal-enviar-item-mochila').style.display = 'flex';
+        }
+
+        function fecharModalEnviarItemMochilaMobile() {
+            document.getElementById('modal-enviar-item-mochila').style.display = 'none';
+            itemPresetParaEnviarMochilaId = null;
+        }
+
+        function confirmarEnviarItemMochilaMobile(idCriatura) {
+            if (!itemPresetParaEnviarMochilaId) return;
+            const qtd = Math.max(1, parseInt(document.getElementById('qtd-enviar-item-mochila')?.value, 10) || 1);
+            adicionarItemDoCompendioParaMochila(idCriatura, itemPresetParaEnviarMochilaId, qtd);
+            fecharModalEnviarItemMochilaMobile();
+        }
+
+        /* EDITAR / CRIAR ITEM PRESET */
+        function abrirModalEditarItemMobile(idCriatura = null, idItem = null, modoPreset = false) {
+            itemEmEdicaoContexto = { idCriatura, idItem, modoPreset };
+            let item = null;
+            if (modoPreset && idItem) item = presetsItens.find(i => i.id === idItem);
+
+            document.getElementById('modal-item-titulo').innerText = item ? `✏️ Editar: ${item.nome}` : '📦 Novo Item / Equipamento';
+            document.getElementById('modal-item-nome').value = item?.nome || '';
+            document.getElementById('modal-item-tipo').value = item?.tipo || 'equipamento';
+            document.getElementById('modal-item-icone').value = item?.icone || '🛡️';
+            document.getElementById('modal-item-qtd').value = item?.quantidade || 1;
+            document.getElementById('modal-item-descricao').value = item?.descricao || '';
+            document.getElementById('modal-item-slot').value = item?.slot || 'corpo';
+            document.getElementById('modal-item-bonus-hp').value = item?.bonusHpMax || '';
+            document.getElementById('modal-item-bonus-esquiva').value = item?.bonusEsquiva || '';
+            document.getElementById('modal-item-bonus-res').value = item?.bonusResistencia || '';
+            document.getElementById('modal-item-efeito-hp').value = item?.efeitoHp || '';
+
+            const secaoMochila = document.getElementById('secao-adicionar-mochila-preset');
+            const selectCriat = document.getElementById('modal-item-enviar-criatura');
+            if (modoPreset) {
+                secaoMochila.style.display = 'flex';
+                selectCriat.innerHTML = `<option value="">Nenhum (Apenas no compêndio)</option>` +
+                    listaCriaturas.map(c => `<option value="${c.id}">${normalizarTipoCriatura(c.tipo) === 'oponente' ? '💀' : '🛡️'} ${escaparTextoHtml(c.nome)}</option>`).join('');
+            } else {
+                secaoMochila.style.display = 'none';
+            }
+
+            atualizarCamposTipoItemModalMobile(document.getElementById('modal-item-tipo').value);
+            document.getElementById('modal-editar-item').style.display = 'flex';
+        }
+
+        function fecharModalEditarItemMobile() {
+            document.getElementById('modal-editar-item').style.display = 'none';
+        }
+
+        function atualizarCamposTipoItemModalMobile(tipo) {
+            document.getElementById('secao-campos-equipamento').style.display = (tipo === 'equipamento') ? 'flex' : 'none';
+            document.getElementById('secao-campos-consumivel').style.display = (tipo === 'consumivel') ? 'flex' : 'none';
+        }
+
+        function salvarItemModalMobile() {
+            const nome = document.getElementById('modal-item-nome').value.trim();
+            if (!nome) return alert("Por favor, digite o nome do item!");
+            const tipo = document.getElementById('modal-item-tipo').value;
+
+            const dadosItem = {
+                nome: nome,
+                tipo: tipo,
+                icone: document.getElementById('modal-item-icone').value.trim() || '🏷️',
+                quantidade: Math.max(1, parseInt(document.getElementById('modal-item-qtd').value, 10) || 1),
+                descricao: document.getElementById('modal-item-descricao').value.trim(),
+                slot: tipo === 'equipamento' ? document.getElementById('modal-item-slot').value : '',
+                bonusHpMax: tipo === 'equipamento' ? (Number(document.getElementById('modal-item-bonus-hp').value) || 0) : 0,
+                bonusEsquiva: tipo === 'equipamento' ? (Number(document.getElementById('modal-item-bonus-esquiva').value) || 0) : 0,
+                bonusResistencia: tipo === 'equipamento' ? (Number(document.getElementById('modal-item-bonus-res').value) || 0) : 0,
+                efeitoHp: tipo === 'consumivel' ? (Number(document.getElementById('modal-item-efeito-hp').value) || 0) : 0,
+                imagem: '',
+                imagemVisivel: true
+            };
+
+            const { modoPreset, idItem } = itemEmEdicaoContexto;
+            if (modoPreset) {
+                let idItemFinal = idItem;
+                if (idItem) {
+                    const idx = presetsItens.findIndex(i => i.id === idItem);
+                    if (idx !== -1) presetsItens[idx] = { ...presetsItens[idx], ...dadosItem };
+                } else {
+                    idItemFinal = gerarIdUnico();
+                    presetsItens.push({ id: idItemFinal, ...dadosItem });
+                }
+                dbSet('vtt_presets_itens', presetsItens);
+                broadcastRede('UPDATE_PRESETS_ITENS', presetsItens);
+                renderizarCompendioItensMobile();
+                adicionarMensagemChat(`✨ Preset <b>${escaparTextoHtml(nome)}</b> salvo no Compêndio!`);
+
+                const destinoId = document.getElementById('modal-item-enviar-criatura')?.value;
+                if (destinoId) {
+                    adicionarItemDoCompendioParaMochila(destinoId, idItemFinal, dadosItem.quantidade);
+                }
+            }
+
+            fecharModalEditarItemMobile();
+        }
+
+        /* ARSENAL DE ARMAS */
+        function abrirModalNovaArmaMobile() {
+            armaEmEdicaoId = null;
+            document.getElementById('modal-arsenal-titulo').innerText = '⚔️ Nova Arma do Arsenal';
+            document.getElementById('novo-arsenal-nome').value = '';
+            document.getElementById('novo-arsenal-dado-atk').value = '20';
+            document.getElementById('novo-arsenal-bonus-atk').value = '0';
+            document.getElementById('novo-arsenal-qtd-dano').value = '1';
+            document.getElementById('novo-arsenal-faces-dano').value = '6';
+            document.getElementById('novo-arsenal-mod-dano').value = '0';
+            document.getElementById('modal-arsenal').style.display = 'flex';
+        }
+
+        function carregarArmaParaEdicaoMobile(idArma) {
+            const arma = presetsArmas.find(a => a.id === idArma);
+            if (!arma) return;
+            armaEmEdicaoId = idArma;
+            document.getElementById('modal-arsenal-titulo').innerText = `✏️ Editar: ${arma.nome}`;
+            document.getElementById('novo-arsenal-nome').value = arma.nome || '';
+            document.getElementById('novo-arsenal-dado-atk').value = arma.dadoAtaque || 20;
+            document.getElementById('novo-arsenal-bonus-atk').value = arma.bonusAtaque || 0;
+            document.getElementById('novo-arsenal-qtd-dano').value = arma.quantidadeDadosDano || 1;
+            document.getElementById('novo-arsenal-faces-dano').value = arma.facesDadoDano || 6;
+            document.getElementById('novo-arsenal-mod-dano').value = arma.modDano || 0;
+            document.getElementById('modal-arsenal').style.display = 'flex';
+        }
+
+        function fecharModalArsenalMobile() {
+            document.getElementById('modal-arsenal').style.display = 'none';
+        }
+
+        function salvarArmaNoArsenalMobile() {
+            const nome = document.getElementById('novo-arsenal-nome').value.trim();
+            if (!nome) return alert("Por favor, digite o nome da arma!");
+
+            const dados = {
+                nome: nome,
+                dadoAtaque: Number(document.getElementById('novo-arsenal-dado-atk').value) || 20,
+                bonusAtaque: Number(document.getElementById('novo-arsenal-bonus-atk').value) || 0,
+                quantidadeDadosDano: Math.max(1, Number(document.getElementById('novo-arsenal-qtd-dano').value) || 1),
+                facesDadoDano: Math.max(2, Number(document.getElementById('novo-arsenal-faces-dano').value) || 6),
+                modDano: Number(document.getElementById('novo-arsenal-mod-dano').value) || 0
+            };
+
+            if (armaEmEdicaoId) {
+                const idx = presetsArmas.findIndex(a => a.id === armaEmEdicaoId);
+                if (idx !== -1) presetsArmas[idx] = { ...presetsArmas[idx], ...dados };
+            } else {
+                presetsArmas.push({ id: gerarIdUnico(), ...dados });
+            }
+
+            dbSet('vtt_presets_armas', presetsArmas);
+            broadcastRede('UPDATE_PRESETS_ARMAS', presetsArmas);
+            renderizarCompendioArmasMobile();
+            fecharModalArsenalMobile();
+        }
+
+        function excluirArmaArsenalMobile(id) {
+            if (!confirm("Excluir esta arma do Arsenal?")) return;
+            presetsArmas = presetsArmas.filter(a => a.id !== id);
+            dbSet('vtt_presets_armas', presetsArmas);
+            broadcastRede('UPDATE_PRESETS_ARMAS', presetsArmas);
+            renderizarCompendioArmasMobile();
+        }
+
+        /* PAPERDOLL / VISUAL INSPECT */
+        function abrirModalInspecionarVisualMobile(idCriatura) {
+            const c = listaCriaturas.find(i => i.id === idCriatura);
+            if (!c) return;
+            criaturaEmVisualizacaoId = idCriatura;
+            document.getElementById('modal-visual-titulo').innerText = `👁️ Visual: ${c.nome}`;
+
+            const container = document.getElementById('paperdoll-composite-view');
+            const sobrepostos = obterEquipamentosSobrepostos(c);
+            const camadasHtml = sobrepostos.map(eq => `
+                <div class="paperdoll-layer-equip" style="background-image: url('${eq.imagem}'); z-index: ${ORDEM_SLOTS_ZINDEX[eq.slot] || 5};"></div>
+            `).join('');
+            const baseHtml = c.avatar 
+                ? `<div class="paperdoll-layer" style="background-image: url('${c.avatar}');"></div>`
+                : `<div class="paperdoll-layer" style="background-color:${c.cor}; display:flex; align-items:center; justify-content:center; font-size:1.5rem; font-weight:800; color:#fff;">${c.nome.substring(0,3).toUpperCase()}</div>`;
+            container.innerHTML = baseHtml + camadasHtml;
+
+            const listaEq = document.getElementById('lista-equipamentos-visual-modal');
+            listaEq.innerHTML = (c.equipamentos || []).map(eq => `
+                <div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-card); padding:4px 6px; border-radius:4px; font-size:0.68rem;">
+                    <span>${obterIconeSlot(eq.slot)} ${escaparTextoHtml(eq.nome)}</span>
+                    <button class="btn-secondary btn-small" onclick="desequiparItemMobile('${c.id}', '${eq.id}'); abrirModalInspecionarVisualMobile('${c.id}');">↩️ Desequipar</button>
+                </div>
+            `).join('') || '<span style="font-size:0.65rem; color:var(--text-muted); text-align:center;">Sem equipamentos.</span>';
+
+            document.getElementById('modal-inspecionar-visual').style.display = 'flex';
+        }
+
+        function fecharModalInspecionarVisualMobile() {
+            document.getElementById('modal-inspecionar-visual').style.display = 'none';
+        }
+
+        function atualizarAvatarBaseModalMobile(input) {
+            const file = input.files[0];
+            if (!file || !criaturaEmVisualizacaoId) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const c = listaCriaturas.find(i => i.id === criaturaEmVisualizacaoId);
+                if (c) {
+                    c.avatar = e.target.result;
+                    salvarDados();
+                    abrirModalInspecionarVisualMobile(criaturaEmVisualizacaoId);
+                }
+            };
+            reader.readAsDataURL(file);
+            input.value = '';
+        }
+
+        function removerAvatarBaseModalMobile() {
+            const c = listaCriaturas.find(i => i.id === criaturaEmVisualizacaoId);
+            if (c) {
+                c.avatar = '';
+                salvarDados();
+                abrirModalInspecionarVisualMobile(criaturaEmVisualizacaoId);
+            }
+        }
+
+        /* MODAL CRIAR ENTIDADE */
+        function abrirModalCriarEntidadeMobile() {
+            document.getElementById('modal-criar-entidade').style.display = 'flex';
+        }
+
+        function fecharModalCriarEntidadeMobile() {
+            document.getElementById('modal-criar-entidade').style.display = 'none';
+        }
+
+        function confirmarCriacaoMobile(tipo) {
+            const nome = prompt(`Nome do novo ${tipo === 'oponente' ? 'Oponente' : (tipo === 'player' ? 'Herói' : 'Personagem')}:`, tipo === 'oponente' ? 'Goblin' : 'Guerreiro');
+            if (!nome || !nome.trim()) return;
+
+            const cor = tipo === 'oponente' ? '#ff5252' : (tipo === 'player' ? '#00e5ff' : '#ffab00');
+            const nova = {
+                id: gerarIdUnico(),
+                nome: nome.trim(),
+                tipo: tipo,
+                hpAtual: 20,
+                hpMax: 20,
+                esquiva: 10,
+                resistencia: 0,
+                iniciativa: 10,
+                cor: cor,
+                posicaoX: 200,
+                posicaoY: 200,
+                avatar: "",
+                condicoes: [],
+                inventario: [],
+                equipamentos: [],
+                listaAtaques: [
+                    { id: gerarIdUnico(), nome: "Ataque Básico", dadoAtaque: 20, bonusAtaque: 2, quantidadeDadosDano: 1, facesDadoDano: 6, modDano: 1 }
+                ]
+            };
+
+            listaCriaturas.push(nova);
+            salvarDados();
+            fecharModalCriarEntidadeMobile();
+            adicionarMensagemChat(`✨ <b>${escaparTextoHtml(nova.nome)}</b> entrou na mesa!`, 'round');
+        }
+
+        /* ==========================================================================
+           ABA 5: MESA, COMBATE & MULTIPLAYER
+           ========================================================================== */
+        function atualizarBadgeTurnoHeader() {
+            const badge = document.getElementById('badge-turno-atual');
+            if (!badge) return;
+            if (ordemIniciativa.length === 0 || indiceTurnoAtual === -1) {
+                badge.innerText = '⚔️ Sem Combate';
+                badge.style.borderColor = 'rgba(255, 214, 0, 0.35)';
+            } else {
+                const cId = ordemIniciativa[indiceTurnoAtual];
+                const c = listaCriaturas.find(i => i.id === cId);
+                badge.innerText = c ? `⭐ ${c.nome}` : `Turno ${indiceTurnoAtual + 1}`;
+                badge.style.borderColor = 'var(--turn-glow)';
+            }
+        }
+
+        function renderizarMesaMobile() {
+            // Lista iniciativa
+            const containerInic = document.getElementById('lista-iniciativa-mobile');
+            if (containerInic) {
+                if (ordemIniciativa.length === 0) {
+                    containerInic.innerHTML = `<span style="font-size:0.65rem; color:var(--text-muted); font-style:italic;">Iniciativa não rolada.</span>`;
+                } else {
+                    containerInic.innerHTML = ordemIniciativa.map((id, idx) => {
+                        const c = listaCriaturas.find(i => i.id === id);
+                        if (!c) return '';
+                        const ehVez = idx === indiceTurnoAtual;
+                        return `
+                            <div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-card); padding:4px 6px; border-radius:4px; font-size:0.68rem; ${ehVez ? 'border:1px solid var(--turn-glow);' : ''}">
+                                <span>${idx + 1}. <b>${escaparTextoHtml(c.nome)}</b> ${ehVez ? '⭐ [VEZ]' : ''}</span>
+                                <span style="color:var(--accent);">Inic ${c.iniciativaCombate || c.iniciativa}</span>
+                            </div>
+                        `;
+                    }).join('');
+                }
+            }
+
+            // Lista saves
+            const containerSaves = document.getElementById('lista-saves-mobile');
+            if (containerSaves) {
+                if (listaCenariosSalvos.length === 0) {
+                    containerSaves.innerHTML = `<span style="font-size:0.65rem; color:var(--text-muted); font-style:italic;">Nenhum save gravado.</span>`;
+                } else {
+                    containerSaves.innerHTML = listaCenariosSalvos.map(s => `
+                        <div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-card); padding:4px 6px; border-radius:4px; font-size:0.68rem;">
+                            <div>
+                                <strong>${escaparTextoHtml(s.nome)}</strong>
+                                <div style="font-size:0.55rem; color:var(--text-muted);">${s.data || ''}</div>
+                            </div>
+                            <div style="display:flex; gap:2px;">
+                                <button class="btn-accent btn-small" onclick="carregarCenarioMobile('${s.id}')">Carregar</button>
+                                <button class="btn-danger btn-small" onclick="excluirCenarioMobile('${s.id}')">✕</button>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            }
+
+            // Nickname
+            const inputNick = document.getElementById('input-nick-mobile');
+            if (inputNick) inputNick.value = meuNickname;
+        }
+
+        function abrirModalIniciativaMobile() {
+            if (listaCriaturas.length === 0) return alert("Nenhuma criatura criada para rolar iniciativa!");
+            ordemIniciativa = [];
+            listaCriaturas.forEach(c => {
+                const d20 = Math.floor(Math.random() * 20) + 1;
+                c.iniciativaCombate = d20 + (Number(c.iniciativa) || 0);
+            });
+            const ordenados = [...listaCriaturas].sort((a, b) => b.iniciativaCombate - a.iniciativaCombate);
+            ordemIniciativa = ordenados.map(c => c.id);
+            indiceTurnoAtual = 0;
+            salvarDados();
+            adicionarMensagemChat(`🎲 <b>Iniciativa de Combate Rolada!</b> Vez de <b>${escaparTextoHtml(ordenados[0]?.nome || '')}</b>!`, 'round');
+            renderizarMesaMobile();
+        }
+
+        function avancarTurnoMobile() {
+            if (ordemIniciativa.length === 0) return abrirModalIniciativaMobile();
+            indiceTurnoAtual = (indiceTurnoAtual + 1) % ordemIniciativa.length;
+            const cAtual = listaCriaturas.find(i => i.id === ordemIniciativa[indiceTurnoAtual]);
+            salvarDados();
+            if (cAtual) {
+                adicionarMensagemChat(`⏩ <b>Turno avançado!</b> Agora é a vez de <b>${escaparTextoHtml(cAtual.nome)}</b>!`, 'action');
+            }
+            renderizarMesaMobile();
+        }
+
+        function resetarIniciativaMobile() {
+            ordemIniciativa = [];
+            indiceTurnoAtual = -1;
+            salvarDados();
+            adicionarMensagemChat(`↺ Combate e iniciativa resetados.`, 'round');
+            renderizarMesaMobile();
+        }
+
+        async function salvarCenarioMobile() {
+            const input = document.getElementById('input-nome-save-mobile');
+            const nome = (input.value || '').trim() || `Cenário ${listaCenariosSalvos.length + 1}`;
+            const bg = await dbGet('vtt_mapa_bg');
+            const pacote = {
+                versao: '2.0',
+                nome: nome,
+                dataSalvo: new Date().toLocaleString('pt-BR'),
+                tabuleiro: { mapaTiles: { ...mapaTiles }, mapaProps: { ...mapaProps }, mapaBg: bg || null },
+                criaturas: JSON.parse(JSON.stringify(listaCriaturas)),
+                presetsCondicoes: { ...PRESETS_CONDICOES },
+                presetsArmas: JSON.parse(JSON.stringify(presetsArmas)),
+                presetsItens: JSON.parse(JSON.stringify(presetsItens)),
+                combate: { ordemIniciativa: [...ordemIniciativa], indiceTurnoAtual: indiceTurnoAtual },
+                chatLogs: [...historicoChat]
+            };
+
+            listaCenariosSalvos.unshift({
+                id: gerarIdUnico(),
+                nome: nome,
+                data: pacote.dataSalvo,
+                dados: pacote
+            });
+
+            await dbSet('vtt_cenarios_salvos', listaCenariosSalvos);
+            input.value = '';
+            renderizarMesaMobile();
+            adicionarMensagemChat(`💾 Cenário <b>${escaparTextoHtml(nome)}</b> salvo com sucesso!`, 'round');
+        }
+
+        async function carregarCenarioMobile(idSlot) {
+            const slot = listaCenariosSalvos.find(s => s.id === idSlot);
+            if (!slot || !slot.dados) return;
+            if (!confirm(`Carregar cenário "${slot.nome}"? O estado atual da mesa será substituído.`)) return;
+
+            const d = slot.dados;
+            if (Array.isArray(d.criaturas)) listaCriaturas = d.criaturas;
+            if (d.presetsCondicoes) PRESETS_CONDICOES = { ...d.presetsCondicoes };
+            if (Array.isArray(d.presetsArmas)) presetsArmas = d.presetsArmas;
+            if (Array.isArray(d.presetsItens)) presetsItens = d.presetsItens;
+            if (d.tabuleiro) {
+                mapaTiles = d.tabuleiro.mapaTiles || {};
+                mapaProps = d.tabuleiro.mapaProps || {};
+                if (d.tabuleiro.mapaBg) {
+                    await dbSet('vtt_mapa_bg', d.tabuleiro.mapaBg);
+                    aplicarEstiloMapaMobile(d.tabuleiro.mapaBg);
+                }
+            }
+            if (d.combate) {
+                ordemIniciativa = d.combate.ordemIniciativa || [];
+                indiceTurnoAtual = d.combate.indiceTurnoAtual ?? -1;
+            }
+
+            await dbSet('vtt_criaturas', listaCriaturas);
+            await dbSet('vtt_presets_armas', presetsArmas);
+            await dbSet('vtt_presets_itens', presetsItens);
+            await dbSet('vtt_mapa_tiles', mapaTiles);
+            await dbSet('vtt_mapa_props', mapaProps);
+
+            salvarDados();
+            desenharCanvasMapaMobile();
+            renderizarMesaMobile();
+            adicionarMensagemChat(`📥 Cenário <b>${escaparTextoHtml(slot.nome)}</b> carregado!`, 'round');
+        }
+
+        function excluirCenarioMobile(idSlot) {
+            if (!confirm("Excluir este cenário salvo?")) return;
+            listaCenariosSalvos = listaCenariosSalvos.filter(s => s.id !== idSlot);
+            dbSet('vtt_cenarios_salvos', listaCenariosSalvos);
+            renderizarMesaMobile();
+        }
+
+        function salvarNicknameMobile() {
+            const input = document.getElementById('input-nick-mobile');
+            const nick = (input.value || '').trim();
+            if (!nick) return alert("Digite um nickname!");
+            meuNickname = nick;
+            localStorage.setItem('vtt_user_nickname', nick);
+            alert(`Nickname definido como "${nick}"!`);
+        }
+
+        /* MULTIPLAYER MODAL & HOST CONFIRMATION */
+        function abrirModalMultiplayerMobile() {
+            document.getElementById('input-meu-nickname-sheet').value = meuNickname;
+            document.getElementById('modal-multiplayer').style.display = 'flex';
+        }
+
+        function fecharModalMultiplayerMobile() {
+            document.getElementById('modal-multiplayer').style.display = 'none';
+        }
+
+        function salvarMeuNicknameSheet() {
+            const input = document.getElementById('input-meu-nickname-sheet');
+            const nick = (input.value || '').trim();
+            if (!nick) return;
+            meuNickname = nick;
+            localStorage.setItem('vtt_user_nickname', nick);
+            alert(`Nickname salvo: ${nick}`);
+        }
+
+        function dispararConfirmacaoHostMobile() {
+            if (countdownHostInterval) clearInterval(countdownHostInterval);
+            const btn = document.getElementById('btn-confirmar-host-mobile');
+            btn.disabled = true;
+            btn.style.opacity = '0.5';
+            let seg = 3;
+            btn.innerText = `Aguarde (${seg}s)...`;
+
+            countdownHostInterval = setInterval(() => {
+                seg--;
+                if (seg > 0) {
+                    btn.innerText = `Aguarde (${seg}s)...`;
+                } else {
+                    clearInterval(countdownHostInterval);
+                    btn.disabled = false;
+                    btn.style.opacity = '1';
+                    btn.innerText = `🔥 Confirmar e Hospedar`;
+                    btn.onclick = iniciarHostMobile;
+                }
+            }, 1000);
+
+            document.getElementById('modal-confirmar-host').style.display = 'flex';
+        }
+
+        function cancelarConfirmacaoHostMobile() {
+            if (countdownHostInterval) clearInterval(countdownHostInterval);
+            document.getElementById('modal-confirmar-host').style.display = 'none';
+        }
+
+        function iniciarHostMobile() {
+            cancelarConfirmacaoHostMobile();
+            if (!window.Peer) return alert("Biblioteca PeerJS não carregada.");
+            if (peerInstance) peerInstance.destroy();
+
+            peerInstance = new Peer();
+            const badge = document.getElementById('indicador-rede');
+            badge.innerText = 'Hospedando...';
+
+            peerInstance.on('open', (id) => {
+                papelRede = 'host';
+                badge.innerText = `👑 Mestre (${id.substring(0, 5)}...)`;
+                badge.classList.add('connected');
+                const info = document.getElementById('info-p2p-mobile');
+                if (info) info.innerHTML = `Sala aberta! <b>ID: ${id}</b> (Copie e envie aos jogadores)`;
+                adicionarMensagemChat(`👑 Sala criada! Compartilhe o ID <b>${id}</b> com seus jogadores!`, 'round');
+            });
+
+            peerInstance.on('connection', (conn) => {
+                conexoesJogadores.push(conn);
+                conn.on('open', () => {
+                    enviarSincronizacaoCompletaMobile(conn);
+                });
+                conn.on('data', (dados) => processarMensagemRedeMobile(dados, conn));
+            });
+        }
+
+        function conectarComoJogadorMobile() {
+            const idHost = (document.getElementById('input-sala-p2p-mobile').value || '').trim();
+            conectarComoJogadorComId(idHost);
+        }
+
+        function conectarComoJogadorSheet() {
+            const idHost = (document.getElementById('input-sala-p2p-sheet').value || '').trim();
+            conectarComoJogadorComId(idHost);
+            fecharModalMultiplayerMobile();
+        }
+
+        function conectarComoJogadorComId(idHost) {
+            if (!idHost) return alert("Digite o ID da sala do Mestre!");
+            if (!window.Peer) return alert("PeerJS não carregado.");
+            if (peerInstance) peerInstance.destroy();
+
+            peerInstance = new Peer();
+            const badge = document.getElementById('indicador-rede');
+            badge.innerText = 'Conectando...';
+
+            peerInstance.on('open', () => {
+                conexaoHost = peerInstance.connect(idHost);
+                conexaoHost.on('open', () => {
+                    papelRede = 'client';
+                    badge.innerText = `🟢 Jogador (${meuNickname})`;
+                    badge.classList.add('connected');
+                    const info = document.getElementById('info-p2p-mobile');
+                    if (info) info.innerText = `Conectado ao Mestre: ${idHost}`;
+                    adicionarMensagemChat(`🌐 Conectado ao Mestre com sucesso!`, 'round');
+                    conexaoHost.send({ tipo: 'PLAYER_INFO', payload: { nickname: meuNickname } });
+                });
+                conexaoHost.on('data', (dados) => processarMensagemRedeMobile(dados, conexaoHost));
+            });
+        }
+
+        function broadcastRede(tipo, payload) {
+            const msg = { tipo, payload };
+            if (papelRede === 'host') {
+                conexoesJogadores.forEach(conn => { if (conn.open) conn.send(msg); });
+            } else if (papelRede === 'client' && conexaoHost && conexaoHost.open) {
+                conexaoHost.send(msg);
+            }
+        }
+
+        function enviarSincronizacaoCompletaMobile(conn) {
+            conn.send({
+                tipo: 'SYNC_FULL',
+                payload: {
+                    listaCriaturas,
+                    ordemIniciativa,
+                    indiceTurnoAtual,
+                    mapaTiles,
+                    mapaProps,
+                    historicoChat,
+                    presetsCondicoes: PRESETS_CONDICOES,
+                    presetsArmas: presetsArmas,
+                    presetsItens: presetsItens
+                }
+            });
+        }
+
+        function processarMensagemRedeMobile(msg, remetente) {
+            if (!msg || !msg.tipo) return;
+            switch(msg.tipo) {
+                case 'SYNC_FULL':
+                    listaCriaturas = msg.payload.listaCriaturas || [];
+                    ordemIniciativa = msg.payload.ordemIniciativa || [];
+                    indiceTurnoAtual = msg.payload.indiceTurnoAtual ?? -1;
+                    mapaTiles = msg.payload.mapaTiles || {};
+                    mapaProps = msg.payload.mapaProps || {};
+                    historicoChat = msg.payload.historicoChat || [];
+                    if (msg.payload.presetsCondicoes) PRESETS_CONDICOES = msg.payload.presetsCondicoes;
+                    if (msg.payload.presetsArmas) presetsArmas = msg.payload.presetsArmas;
+                    if (msg.payload.presetsItens) presetsItens = msg.payload.presetsItens;
+                    renderizarFichasMobile();
+                    renderizarTokensMapaMobile();
+                    desenharCanvasMapaMobile();
+                    renderizarChatMobile();
+                    atualizarBadgeTurnoHeader();
+                    break;
+                case 'UPDATE_STATE':
+                    listaCriaturas = msg.payload.listaCriaturas || listaCriaturas;
+                    ordemIniciativa = msg.payload.ordemIniciativa || ordemIniciativa;
+                    indiceTurnoAtual = msg.payload.indiceTurnoAtual ?? indiceTurnoAtual;
+                    renderizarFichasMobile();
+                    renderizarTokensMapaMobile();
+                    atualizarBadgeTurnoHeader();
+                    break;
+                case 'CHAT_MSG':
+                    historicoChat.push(msg.payload);
+                    renderizarChatMobile();
+                    if (papelRede === 'host') broadcastRede('CHAT_MSG', msg.payload);
+                    break;
+                case 'MOVE_TOKEN':
+                    const c = listaCriaturas.find(i => i.id === msg.payload.id);
+                    if (c) {
+                        c.posicaoX = msg.payload.x;
+                        c.posicaoY = msg.payload.y;
+                        renderizarTokensMapaMobile();
+                        if (papelRede === 'host') broadcastRede('MOVE_TOKEN', msg.payload);
+                    }
+                    break;
+            }
+        }
+
+        /* INICIALIZAÇÃO */
+        carregarDadosIniciais();
+        resetarVisaoMapaMobile();
+    </script>
+</body>
+</html>
